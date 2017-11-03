@@ -41,7 +41,7 @@ public class PALR2R {
 			if (this.WaitingForConfirm) {
 
 				this.WaitCount++;
-				if (this.WaitCount >= 5) {
+				if (this.WaitCount >= 10) {
 					this.WaitingForConfirm = false;
 					this.WaitCount = 0;
 				}
@@ -544,12 +544,12 @@ public class PALR2R {
 	private void initial(ConfigBase cfg) {
 		try {
 			if (cfg.Get("SampleSize").equals("")) {
-				this.SampleSize = 5;
+				this.SampleSize = 10;
 			} else {
 				try {
 					this.SampleSize = Integer.parseInt(cfg.Get("SampleSize"));
 				} catch (Exception e) {
-					this.SampleSize = 5;
+					this.SampleSize = 10;
 				}
 			}
 
