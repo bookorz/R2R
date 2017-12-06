@@ -1,26 +1,11 @@
-package com.innlux.models.bc;
+package com.innolux.models.bc;
 
 import com.innolux.annotation.Column;
 import com.innolux.annotation.Entity;
-import com.innolux.annotation.Id;
 
-@Entity("main_bc_unit") // 表名
-public class Unit {
+@Entity("io_event") // 表名
+public class IO_Event {
 	/** 
-     * BC UnitEqpID
-     */  
-	@Id("hostunitid")  
-    private String UnitEqpID; 
-	
-	public String getUnitEqpID() {  
-        return UnitEqpID;  
-    }  
-  
-    public void setUnitEqpID(String UnitEqpID) {  
-        this.UnitEqpID = UnitEqpID;  
-    }  
-    
-    /** 
      * BC number
      */  
     @Column("bcno")  
@@ -77,43 +62,56 @@ public class Unit {
     }  
     
     /** 
-     * BC unit no
+     * Funckey
      */  
-    @Column("hostunitid")  
-    private String UnitNo; 
+    @Column("funckey")  
+    private String Funckey; 
 	
-	public String getUnitNo() {  
-        return UnitNo;  
+	public String getFunckey() {  
+        return Funckey;  
     }  
   
-    public void setUnitNo(String UnitNo) {  
-        this.UnitNo = UnitNo;  
+    public void setFunckey(String Funckey) {  
+        this.Funckey = Funckey;  
     }  
     
     /** 
-     * BC Unit RecipeSplit
+     * Start address
      */  
-    @Column("recipesplit")  
-    private String RecipeSplit; 
+    @Column("startadr")  
+    private String StartAddr; 
 	
-	public String getRecipeSplit() {  
-        return RecipeSplit;  
+	public String getStartAddr() {  
+        return StartAddr;  
     }  
   
-    public void setRecipeSplit(String RecipeSplit) {  
-        this.RecipeSplit = RecipeSplit;  
+    public void setStartAddr(String StartAddr) {  
+        this.StartAddr = StartAddr;  
     }  
     
-    
+    /** 
+     * Data length
+     */  
+    @Column("datalen")  
+    private String DataLength; 
+	
+	public String getDataLength() {  
+        return DataLength;  
+    }  
+  
+    public void setDataLength(String DataLength) {  
+        this.DataLength = DataLength;  
+    }  
     
     @Override  
     public String toString() {  
-        return " UnitEqpID: " + UnitEqpID+
+        return 
         		" BCNo: " + BCNo+
         		" LineNo: " + LineNo+
         		" FabType: " + FabType+
         		" NodeNo: " + NodeNo+
-        		" UnitNo: " + UnitNo+
-        		" RecipeSplit: " + RecipeSplit;   		
+        		" Funckey: " + Funckey+
+        		" StartAddr: " + StartAddr+
+        		" DataLength: " + DataLength;   		
     } 
 }

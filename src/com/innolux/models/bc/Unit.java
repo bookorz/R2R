@@ -1,11 +1,26 @@
-package com.innlux.models.bc;
+package com.innolux.models.bc;
 
 import com.innolux.annotation.Column;
 import com.innolux.annotation.Entity;
+import com.innolux.annotation.Id;
 
-@Entity("io_event") // 表名
-public class IO_Event {
+@Entity("main_bc_unit") // 表名
+public class Unit {
 	/** 
+     * BC UnitEqpID
+     */  
+	@Id("hostunitid")  
+    private String UnitEqpID; 
+	
+	public String getUnitEqpID() {  
+        return UnitEqpID;  
+    }  
+  
+    public void setUnitEqpID(String UnitEqpID) {  
+        this.UnitEqpID = UnitEqpID;  
+    }  
+    
+    /** 
      * BC number
      */  
     @Column("bcno")  
@@ -62,56 +77,43 @@ public class IO_Event {
     }  
     
     /** 
-     * Funckey
+     * BC unit no
      */  
-    @Column("funckey")  
-    private String Funckey; 
+    @Column("hostunitid")  
+    private String UnitNo; 
 	
-	public String getFunckey() {  
-        return Funckey;  
+	public String getUnitNo() {  
+        return UnitNo;  
     }  
   
-    public void setFunckey(String Funckey) {  
-        this.Funckey = Funckey;  
+    public void setUnitNo(String UnitNo) {  
+        this.UnitNo = UnitNo;  
     }  
     
     /** 
-     * Start address
+     * BC Unit RecipeSplit
      */  
-    @Column("startadr")  
-    private String StartAddr; 
+    @Column("recipesplit")  
+    private String RecipeSplit; 
 	
-	public String getStartAddr() {  
-        return StartAddr;  
+	public String getRecipeSplit() {  
+        return RecipeSplit;  
     }  
   
-    public void setStartAddr(String StartAddr) {  
-        this.StartAddr = StartAddr;  
+    public void setRecipeSplit(String RecipeSplit) {  
+        this.RecipeSplit = RecipeSplit;  
     }  
     
-    /** 
-     * Data length
-     */  
-    @Column("datalen")  
-    private String DataLength; 
-	
-	public String getDataLength() {  
-        return DataLength;  
-    }  
-  
-    public void setDataLength(String DataLength) {  
-        this.DataLength = DataLength;  
-    }  
+    
     
     @Override  
     public String toString() {  
-        return 
+        return " UnitEqpID: " + UnitEqpID+
         		" BCNo: " + BCNo+
         		" LineNo: " + LineNo+
         		" FabType: " + FabType+
         		" NodeNo: " + NodeNo+
-        		" Funckey: " + Funckey+
-        		" StartAddr: " + StartAddr+
-        		" DataLength: " + DataLength;   		
+        		" UnitNo: " + UnitNo+
+        		" RecipeSplit: " + RecipeSplit;   		
     } 
 }

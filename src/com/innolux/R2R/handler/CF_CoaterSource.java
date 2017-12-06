@@ -6,13 +6,11 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import com.innolux.R2R.common.Status;
 import com.innolux.R2R.common.ToolUtility;
 import com.innolux.R2R.common.base.ConfigBase;
 import com.innolux.R2R.common.base.MeasureFileDataBase;
 import com.innolux.R2R.common.base.RegulationCollection;
 import com.innolux.R2R.handler.dataProvider.Config;
-import com.innolux.R2R.handler.dataProvider.Feedback;
 import com.innolux.R2R.interfaces.IFileData;
 import com.innolux.services.MeasureFileReader;
 
@@ -35,9 +33,9 @@ public class CF_CoaterSource implements IFileData {
 			String PreSubEqpId1 = data.FetchValue("PDS_GLASS_DATA", "PreSubEQ_ID_1", R2R_ID);
 			String Recipe = data.FetchValue("GLASS_DATA", "RECIPE_ID", R2R_ID);
 
-			String Engage_Col = Status.Get(R2R_ID, Recipe, "Engage_Col");
-			String Plunge_Col = Status.Get(R2R_ID, Recipe, "Plunge_Col");
-			String Retract_Col = Status.Get(R2R_ID, Recipe, "Retract_Col");
+//			String Engage_Col = Status.Get(R2R_ID, Recipe, "Engage_Col");
+//			String Plunge_Col = Status.Get(R2R_ID, Recipe, "Plunge_Col");
+//			String Retract_Col = Status.Get(R2R_ID, Recipe, "Retract_Col");
 
 //			String StartTime = data.FetchValue("EQP_GLASS_DATA", "START_TIME", this.R2R_ID);
 //			if (!StartTime.equals("")) {
