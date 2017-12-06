@@ -1,4 +1,4 @@
-package com.innlux.models.bc;
+package com.innolux.models.bc;
 
 import com.innolux.annotation.Column;
 import com.innolux.annotation.Entity;
