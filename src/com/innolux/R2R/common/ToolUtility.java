@@ -3,14 +3,8 @@ package com.innolux.R2R.common;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Hashtable;
-import java.util.List;
-
 import org.apache.log4j.Logger;
-
-import com.innolux.R2R.handler.dataProvider.GlassData;
 
 public class ToolUtility {
 	private static Logger logger = Logger.getLogger(ToolUtility.class);
