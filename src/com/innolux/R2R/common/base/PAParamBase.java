@@ -6,10 +6,10 @@ public class PAParamBase {
 	//Regulation param
 	public double T_OFFSET_X = 0;
 	public double T_OFFSET_Y = 0;
-	public double T_OFFSET_£c = 0;
+	public double T_OFFSET_Î¸ = 0;
 	public double C_OFFSET_X = 0;
 	public double C_OFFSET_Y = 0;
-	public double C_OFFSET_£c = 0;
+	public double C_OFFSET_Î¸ = 0;
 	
 	
 	//monitor param
@@ -37,10 +37,10 @@ public class PAParamBase {
 		return getClass().getSimpleName() 
 				+ "{C_OFFSET_X:" + C_OFFSET_X + "," 
 				+ "C_OFFSET_Y:" + C_OFFSET_Y + "," 
-				+ "C_OFFSET_£c:" + C_OFFSET_£c + "," 
+				+ "C_OFFSET_Î¸:" + C_OFFSET_Î¸ + "," 
 				+ "T_OFFSET_X:" + T_OFFSET_X + "," 
 				+ "T_OFFSET_Y:" + T_OFFSET_Y + "," 
-				+ "T_OFFSET_£c:" + T_OFFSET_£c + "," 
+				+ "T_OFFSET_Î¸:" + T_OFFSET_Î¸ + "," 
 				+ "C_ACC_1X:" + C_ACC_1X + "," 
 				+ "C_ACC_2X:" + C_ACC_2X + "," 
 				+ "C_ACC_1Y:" + C_ACC_1Y + "," 

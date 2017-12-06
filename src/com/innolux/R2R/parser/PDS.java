@@ -8,10 +8,6 @@ import com.innolux.R2R.common.base.PDSBase;
 public class PDS {
 	
 	private Logger logger = Logger.getLogger(this.getClass());
-	private ToolUtility tools = new ToolUtility();
-
-	
-
 	public boolean Parse(String msg, PDSBase pds) {
 		boolean result = false;
 		try {
@@ -55,7 +51,9 @@ public class PDS {
 			
 			
 			for (String eachParam : ParamStr.split(",")) {
+				eachParam = eachParam.replace("�c", "θ");
 				String[] paramAry = eachParam.split("=");
+				
 				if(paramAry.length >= 2){
 					String name = paramAry[0];
 					String value = paramAry[1];
@@ -66,7 +64,7 @@ public class PDS {
 			}
 			result = true;
 		} catch (Exception e) {
-			logger.error(tools.StackTrace2String(e));
+			logger.error(ToolUtility.StackTrace2String(e));
 		}
 		return result;
 	}

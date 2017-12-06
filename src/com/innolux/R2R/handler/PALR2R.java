@@ -1,9 +1,9 @@
 package com.innolux.R2R.handler;
 
-import java.util.Vector;
-
+import java.util.List;
 import org.apache.log4j.Logger;
 
+import com.innolux.R2R.bc.BC;
 import com.innolux.R2R.common.ToolUtility;
 import com.innolux.R2R.common.base.ConfigBase;
 import com.innolux.R2R.common.base.GlassDataBase;
@@ -15,12 +15,13 @@ import com.innolux.R2R.handler.dataProvider.GlassData;
 
 public class PALR2R {
 	private Logger logger = Logger.getLogger(this.getClass());
-	private ToolUtility tools = new ToolUtility();
+	
 	private PDSBase _PDS = null;
-	private Config ConfigTool = new Config();
+	
 	private String R2R_ID = "";
 	private int SampleSize = 0;
 	private int WaitCount = 0;
+	private int WaitCountSet = 0;
 	private boolean WaitingForConfirm = false;
 	private PAParamBase currentPdsValues = new PAParamBase();
 
@@ -28,7 +29,7 @@ public class PALR2R {
 		this._PDS = pds;
 	}
 
-	public RegulationCollection Excute() {
+	public void Excute() {
 
 		boolean ResetAll = false;
 
@@ -36,21 +37,21 @@ public class PALR2R {
 		RegulationCollection result = new RegulationCollection();
 		this.R2R_ID = this._PDS.Equipment_ID + "_" + this._PDS.SubEquipment_ID;
 		try {
-			this.initial(this.ConfigTool.Lookup(this.R2R_ID));
+			this.initial();
 
 			if (this.WaitingForConfirm) {
 
 				this.WaitCount++;
-				if (this.WaitCount >= 10) {
+				if (this.WaitCount >= this.WaitCountSet) {
 					this.WaitingForConfirm = false;
 					this.WaitCount = 0;
 				}
 
 			} else {
 				if (!PdsDataConvert(currentPdsValues, this._PDS)) {
-					return result;
+					return;
 				}
-				Vector<GlassDataBase> GlassDatas = new GlassData().Lookup(this.R2R_ID, this.SampleSize);
+				List<GlassDataBase> GlassDatas = GlassData.LookupForPdsData(this.R2R_ID, this.SampleSize);
 				if (GlassDatas.size() != 0) {
 
 					if (GlassDataConvert(GlassValues, GlassDatas.get(0))) {
@@ -60,7 +61,7 @@ public class PALR2R {
 						if (currentPdsValues.C_OFFSET_Y != GlassValues.C_OFFSET_Y) {
 							ResetAll = true;
 						}
-						if (currentPdsValues.C_OFFSET_£c != GlassValues.C_OFFSET_£c) {
+						if (currentPdsValues.C_OFFSET_Î¸ != GlassValues.C_OFFSET_Î¸) {
 							ResetAll = true;
 						}
 						if (currentPdsValues.T_OFFSET_X != GlassValues.T_OFFSET_X) {
@@ -69,7 +70,7 @@ public class PALR2R {
 						if (currentPdsValues.T_OFFSET_Y != GlassValues.T_OFFSET_Y) {
 							ResetAll = true;
 						}
-						if (currentPdsValues.T_OFFSET_£c != GlassValues.T_OFFSET_£c) {
+						if (currentPdsValues.T_OFFSET_Î¸ != GlassValues.T_OFFSET_Î¸) {
 							ResetAll = true;
 						}
 
@@ -78,24 +79,24 @@ public class PALR2R {
 									+ currentPdsValues.toString());
 							logger.info(" Run to run ID:" + this.R2R_ID + " Reset all data: last:"
 									+ GlassValues.toString());
-							new GlassData().DeleteAll(R2R_ID);
+							GlassData.DeleteAll(R2R_ID);
 						}
 					} else {
-						return result;
+						return;
 					}
 				}
 				// PreFilter
 
 				if (PreFilter(currentPdsValues)) {
-					if (this.WaitingForConfirm && this.WaitCount >= 10) {
+					if (this.WaitingForConfirm && this.WaitCount >= this.WaitCountSet) {
 						this.WaitCount++;
 					} else {
 						// Insert new glass data
 						if (AddSample(this._PDS)) {
-							GlassDatas = new GlassData().Lookup(this.R2R_ID, this.SampleSize);
+							GlassDatas = GlassData.LookupForPdsData(this.R2R_ID, this.SampleSize);
 							if (GlassDatas.size() == this.SampleSize) {
 								result = Caculation(GlassDatas, this.R2R_ID);
-								new GlassData().DeleteAll(R2R_ID);
+								GlassData.DeleteAll(R2R_ID);
 								this.WaitingForConfirm = true;
 
 							} else {
@@ -109,44 +110,35 @@ public class PALR2R {
 					}
 				} else {
 					logger.info(" Run to run ID:" + this.R2R_ID + " PreFilter is not pass.");
-					return result;
+					return;
 				}
 			}
-			this.UpdateConfig(this.ConfigTool);
-		} catch (Exception e) {
-			logger.error(" Run to run ID:" + this.R2R_ID + " " + tools.StackTrace2String(e));
-		}
-		return result;
-	}
+			this.UpdateConfig();
+			if (result != null) {
+				if (result.GetRegulationCount() != 0) {
+					BC bc = new BC(_PDS.Equipment_ID);
+					
+					if (bc.Excute(result)) {
+						logger.info("SendToBC successful.");
+					} else {
+						logger.error("SendToBC fail.");
+					}
 
-	private String demical2Hex(double value, double rate) {
-		String result = "";
-		int intVal = 0;
-		value = value / rate;
-		if (value >= 0) {
-			intVal = (int) Math.floor(value);
-		} else {
-			intVal = (int) Math.ceil(value);
-		}
-		// result = Integer.valueOf(String.valueOf(intVal), 16).toString();
-
-		result = Integer.toHexString(intVal & 0xffff);
-		if (result.length() <= 4) {
-			while (result.length() < 4) {
-				result = "0" + result;
+				} else {
+					logger.error("Regulation is empty.");
+				}
+			} else {
+				// logger.debug("No match for any R2R.");
 			}
-			logger.debug(" Run to run ID:" + this.R2R_ID + " demical2Hex value:" + value + " rate:" + rate + " result:"
-					+ result);
-		} else {
-			logger.error(" Run to run ID:" + this.R2R_ID + " demical2Hex return nothing value:" + value + " rate:"
-					+ rate + " result:" + result);
-			result = "";
+		} catch (Exception e) {
+			logger.error(" Run to run ID:" + this.R2R_ID + " " + ToolUtility.StackTrace2String(e));
 		}
-
-		return result;
+		
 	}
 
-	private RegulationCollection Caculation(Vector<GlassDataBase> GlassDatas, String R2RID) {
+	
+
+	private RegulationCollection Caculation(List<GlassDataBase> GlassDatas, String R2RID) {
 		RegulationCollection result = new RegulationCollection();
 		result.BcName = this._PDS.Equipment_ID;
 		result.EqpName = this._PDS.SubEquipment_ID;
@@ -159,10 +151,10 @@ public class PALR2R {
 		double C1Y3Y_Avg = 0;
 		double C1Y3Y_Target = currentPdsValues.C_ACC_1Y_TG;
 		double C_OFFSET_Y = 0;
-		// £c Way
+		// Î¸ Way
 		double C3Y_Avg = 0;
 		double C1Y_Avg = 0;
-		double C_OFFSET_£c = 0;
+		double C_OFFSET_Î¸ = 0;
 		// CF Side end
 
 		// TFT Side begin
@@ -174,10 +166,10 @@ public class PALR2R {
 		double T1Y3Y_Avg = 0;
 		double T1Y3Y_Target = currentPdsValues.T_ACC_1Y_TG;
 		double T_OFFSET_Y = 0;
-		// £c Way
+		// Î¸ Way
 		double T3Y_Avg = 0;
 		double T1Y_Avg = 0;
-		double T_OFFSET_£c = 0;
+		double T_OFFSET_Î¸ = 0;
 
 		// TFT Side end
 		try {
@@ -221,7 +213,7 @@ public class PALR2R {
 					this.WaitingForConfirm = true;
 				}
 				C_OFFSET_X += currentPdsValues.C_OFFSET_X;
-				result.StoreRegulation(4, demical2Hex(C_OFFSET_X, 0.01));
+				result.StoreRegulation(4, ToolUtility.demical2Hex(C_OFFSET_X, 0.01,this.R2R_ID));
 				// Y Way
 				C1Y3Y_Avg = C1Y3Y_Avg / ((double) GlassDatas.size() * (double) 2.0);
 				C_OFFSET_Y = (C1Y3Y_Avg - C1Y3Y_Target) / (double) 2.0;
@@ -232,18 +224,18 @@ public class PALR2R {
 					this.WaitingForConfirm = true;
 				}
 				C_OFFSET_Y += currentPdsValues.C_OFFSET_Y;
-				result.StoreRegulation(5, demical2Hex(C_OFFSET_Y, 0.01));
-				// £c Way
-				C_OFFSET_£c = (C3Y_Avg - C1Y_Avg) / ((double) GlassDatas.size() * (double) 2.0);
+				result.StoreRegulation(5, ToolUtility.demical2Hex(C_OFFSET_Y, 0.01,this.R2R_ID));
+				// Î¸ Way
+				C_OFFSET_Î¸ = (C3Y_Avg - C1Y_Avg) / ((double) GlassDatas.size() * (double) 2.0);
 				logger.debug(" Run to run ID:" + this.R2R_ID + " C3Y_Avg:" + C3Y_Avg + " C1Y_Avg:" + C1Y_Avg + " size()*2:"+(double) GlassDatas.size() * (double) 2.0 );
-				logger.debug(" Run to run ID:" + this.R2R_ID + " C_OFFSET_£c:" + C_OFFSET_£c);
-				if (Math.abs(C3Y_Avg - C1Y_Avg) <= 0.1) {
-					C_OFFSET_£c = 0; // If less than target 0.1 ,do nothing.
+				logger.debug(" Run to run ID:" + this.R2R_ID + " C_OFFSET_Î¸:" + C_OFFSET_Î¸);
+				if (Math.abs(C3Y_Avg - C1Y_Avg) <= 0.05) {
+					C_OFFSET_Î¸ = 0; // If less than target 0.05 ,do nothing.
 				} else {
 					this.WaitingForConfirm = true;
 				}
-				C_OFFSET_£c += currentPdsValues.C_OFFSET_£c;
-				result.StoreRegulation(6, demical2Hex(C_OFFSET_£c, 0.001));
+				C_OFFSET_Î¸ += currentPdsValues.C_OFFSET_Î¸;
+				result.StoreRegulation(6, ToolUtility.demical2Hex(C_OFFSET_Î¸, 0.001,this.R2R_ID));
 				// CF Side end
 
 				// TFT Side begin
@@ -257,7 +249,7 @@ public class PALR2R {
 					this.WaitingForConfirm = true;
 				}
 				T_OFFSET_X += currentPdsValues.T_OFFSET_X;
-				result.StoreRegulation(1, demical2Hex(T_OFFSET_X, 0.01));
+				result.StoreRegulation(1, ToolUtility.demical2Hex(T_OFFSET_X, 0.01,this.R2R_ID));
 				// Y Way
 				T1Y3Y_Avg = T1Y3Y_Avg / ((double) GlassDatas.size() * (double) 2.0);
 				T_OFFSET_Y = (T1Y3Y_Target - T1Y3Y_Avg) / (double) 2.0;
@@ -268,17 +260,17 @@ public class PALR2R {
 					this.WaitingForConfirm = true;
 				}
 				T_OFFSET_Y += currentPdsValues.T_OFFSET_Y;
-				result.StoreRegulation(2, demical2Hex(T_OFFSET_Y, 0.01));
-				// £c Way
-				T_OFFSET_£c = (T1Y_Avg - T3Y_Avg) / ((double) GlassDatas.size() * (double) 2.0);
-				logger.debug(" Run to run ID:" + this.R2R_ID + " T_OFFSET_£c:" + T_OFFSET_£c);
-				if (Math.abs(T1Y_Avg - T3Y_Avg) <= 0.1) {
-					T_OFFSET_£c = 0; // If less than target 0.1 ,do nothing.
+				result.StoreRegulation(2, ToolUtility.demical2Hex(T_OFFSET_Y, 0.01,this.R2R_ID));
+				// Î¸ Way
+				T_OFFSET_Î¸ = (T1Y_Avg - T3Y_Avg) / ((double) GlassDatas.size() * (double) 2.0);
+				logger.debug(" Run to run ID:" + this.R2R_ID + " T_OFFSET_Î¸:" + T_OFFSET_Î¸);
+				if (Math.abs(T1Y_Avg - T3Y_Avg) <= 0.05) {
+					T_OFFSET_Î¸ = 0; // If less than target 0.05 ,do nothing.
 				} else {
 					this.WaitingForConfirm = true;
 				}
-				T_OFFSET_£c += currentPdsValues.T_OFFSET_£c;
-				result.StoreRegulation(3, demical2Hex(T_OFFSET_£c, 0.001));
+				T_OFFSET_Î¸ += currentPdsValues.T_OFFSET_Î¸;
+				result.StoreRegulation(3, ToolUtility.demical2Hex(T_OFFSET_Î¸, 0.001,this.R2R_ID));
 				// TFT Side end
 
 				break;
@@ -310,7 +302,7 @@ public class PALR2R {
 					this.WaitingForConfirm = true;
 				}
 				C_OFFSET_X += currentPdsValues.C_OFFSET_X;
-				result.StoreRegulation(4, demical2Hex(C_OFFSET_X, 0.01));
+				result.StoreRegulation(4, ToolUtility.demical2Hex(C_OFFSET_X, 0.01,this.R2R_ID));
 				// Y Way
 				C1Y3Y_Avg = C1Y3Y_Avg / ((double) GlassDatas.size() * (double) 2.0);
 				C_OFFSET_Y = (C1Y3Y_Target - C1Y3Y_Avg) / (double) 2.0;
@@ -321,17 +313,17 @@ public class PALR2R {
 					this.WaitingForConfirm = true;
 				}
 				C_OFFSET_Y += currentPdsValues.C_OFFSET_Y;
-				result.StoreRegulation(5, demical2Hex(C_OFFSET_Y, 0.01));
-				// £c Way
-				C_OFFSET_£c = (C1Y_Avg - C3Y_Avg) / ((double) GlassDatas.size() * (double) 2.0);
-				logger.debug(" Run to run ID:" + this.R2R_ID + " C_OFFSET_£c:" + C_OFFSET_£c);
-				if (Math.abs(C3Y_Avg - C1Y_Avg) <= 0.1) {
-					C_OFFSET_£c = 0; // If less than target 0.1 ,do nothing.
+				result.StoreRegulation(5, ToolUtility.demical2Hex(C_OFFSET_Y, 0.01,this.R2R_ID));
+				// Î¸ Way
+				C_OFFSET_Î¸ = (C1Y_Avg - C3Y_Avg) / ((double) GlassDatas.size() * (double) 2.0);
+				logger.debug(" Run to run ID:" + this.R2R_ID + " C_OFFSET_Î¸:" + C_OFFSET_Î¸);
+				if (Math.abs(C3Y_Avg - C1Y_Avg) <= 0.05) {
+					C_OFFSET_Î¸ = 0; // If less than target 0.05 ,do nothing.
 				} else {
 					this.WaitingForConfirm = true;
 				}
-				C_OFFSET_£c += currentPdsValues.C_OFFSET_£c;
-				result.StoreRegulation(6, demical2Hex(C_OFFSET_£c, 0.001));
+				C_OFFSET_Î¸ += currentPdsValues.C_OFFSET_Î¸;
+				result.StoreRegulation(6, ToolUtility.demical2Hex(C_OFFSET_Î¸, 0.001,this.R2R_ID));
 				// CF Side end
 
 				// TFT Side begin
@@ -345,7 +337,7 @@ public class PALR2R {
 					this.WaitingForConfirm = true;
 				}
 				T_OFFSET_X += currentPdsValues.T_OFFSET_X;
-				result.StoreRegulation(1, demical2Hex(T_OFFSET_X, 0.01));
+				result.StoreRegulation(1, ToolUtility.demical2Hex(T_OFFSET_X, 0.01,this.R2R_ID));
 				// Y Way
 				T1Y3Y_Avg = T1Y3Y_Avg / ((double) GlassDatas.size() * (double) 2.0);
 				T_OFFSET_Y = (T1Y3Y_Avg - T1Y3Y_Target) / (double) 2.0;
@@ -356,24 +348,24 @@ public class PALR2R {
 					this.WaitingForConfirm = true;
 				}
 				T_OFFSET_Y += currentPdsValues.T_OFFSET_Y;
-				result.StoreRegulation(2, demical2Hex(T_OFFSET_Y, 0.01));
-				// £c Way
-				T_OFFSET_£c = (T3Y_Avg - T1Y_Avg) / ((double) GlassDatas.size() * (double) 2.0);
-				logger.debug(" Run to run ID:" + this.R2R_ID + " T_OFFSET_£c:" + T_OFFSET_£c);
-				if (Math.abs(T1Y_Avg - T3Y_Avg) <= 0.1) {
-					T_OFFSET_£c = 0; // If less than target 0.1 ,do nothing.
+				result.StoreRegulation(2, ToolUtility.demical2Hex(T_OFFSET_Y, 0.01,this.R2R_ID));
+				// Î¸ Way
+				T_OFFSET_Î¸ = (T3Y_Avg - T1Y_Avg) / ((double) GlassDatas.size() * (double) 2.0);
+				logger.debug(" Run to run ID:" + this.R2R_ID + " T_OFFSET_Î¸:" + T_OFFSET_Î¸);
+				if (Math.abs(T1Y_Avg - T3Y_Avg) <= 0.05) {
+					T_OFFSET_Î¸ = 0; // If less than target 0.05 ,do nothing.
 				} else {
 					this.WaitingForConfirm = true;
 				}
-				T_OFFSET_£c += currentPdsValues.T_OFFSET_£c;
-				result.StoreRegulation(3, demical2Hex(T_OFFSET_£c, 0.001));
+				T_OFFSET_Î¸ += currentPdsValues.T_OFFSET_Î¸;
+				result.StoreRegulation(3, ToolUtility.demical2Hex(T_OFFSET_Î¸, 0.001,this.R2R_ID));
 				// TFT Side end
 
 				break;
 			}
 
 		} catch (Exception e) {
-			logger.error(tools.StackTrace2String(e));
+			logger.error(ToolUtility.StackTrace2String(e));
 		}
 		result.toString();
 		return result;
@@ -383,37 +375,37 @@ public class PALR2R {
 		boolean result = false;
 		try {
 
-			GlassData gData = new GlassData();
-			gData.Append(R2R_ID, pds.Component_ID, "Glass_ID", pds.Component_ID);
+			
+			GlassData.Append(R2R_ID, pds.Component_ID, "Glass_ID", pds.Component_ID);
 
-			gData.Append(R2R_ID, pds.Component_ID, "C_ACC_1X", pds.GetParameter("C_ACC_1X"));
-			gData.Append(R2R_ID, pds.Component_ID, "C_ACC_1X_TG", pds.GetParameter("C_ACC_1X_TG"));
-			gData.Append(R2R_ID, pds.Component_ID, "C_ACC_1Y", pds.GetParameter("C_ACC_1Y"));
-			gData.Append(R2R_ID, pds.Component_ID, "C_ACC_1Y_TG", pds.GetParameter("C_ACC_1Y_TG"));
-			gData.Append(R2R_ID, pds.Component_ID, "C_ACC_2X", pds.GetParameter("C_ACC_2X"));
-			gData.Append(R2R_ID, pds.Component_ID, "C_ACC_2X_TG", pds.GetParameter("C_ACC_2X_TG"));
-			gData.Append(R2R_ID, pds.Component_ID, "C_ACC_3Y", pds.GetParameter("C_ACC_3Y"));
-			gData.Append(R2R_ID, pds.Component_ID, "C_ACC_3Y_TG", pds.GetParameter("C_ACC_3Y_TG"));
-			gData.Append(R2R_ID, pds.Component_ID, "C_OFFSET_X", pds.GetParameter("C_OFFSET_X"));
-			gData.Append(R2R_ID, pds.Component_ID, "C_OFFSET_Y", pds.GetParameter("C_OFFSET_¢ç"));
-			gData.Append(R2R_ID, pds.Component_ID, "C_OFFSET_£c", pds.GetParameter("C_OFFSET_£c"));
+			GlassData.Append(R2R_ID, pds.Component_ID, "C_ACC_1X", pds.GetParameter("C_ACC_1X"));
+			GlassData.Append(R2R_ID, pds.Component_ID, "C_ACC_1X_TG", pds.GetParameter("C_ACC_1X_TG"));
+			GlassData.Append(R2R_ID, pds.Component_ID, "C_ACC_1Y", pds.GetParameter("C_ACC_1Y"));
+			GlassData.Append(R2R_ID, pds.Component_ID, "C_ACC_1Y_TG", pds.GetParameter("C_ACC_1Y_TG"));
+			GlassData.Append(R2R_ID, pds.Component_ID, "C_ACC_2X", pds.GetParameter("C_ACC_2X"));
+			GlassData.Append(R2R_ID, pds.Component_ID, "C_ACC_2X_TG", pds.GetParameter("C_ACC_2X_TG"));
+			GlassData.Append(R2R_ID, pds.Component_ID, "C_ACC_3Y", pds.GetParameter("C_ACC_3Y"));
+			GlassData.Append(R2R_ID, pds.Component_ID, "C_ACC_3Y_TG", pds.GetParameter("C_ACC_3Y_TG"));
+			GlassData.Append(R2R_ID, pds.Component_ID, "C_OFFSET_X", pds.GetParameter("C_OFFSET_X"));
+			GlassData.Append(R2R_ID, pds.Component_ID, "C_OFFSET_Y", pds.GetParameter("C_OFFSET_Y"));
+			GlassData.Append(R2R_ID, pds.Component_ID, "C_OFFSET_Î¸", pds.GetParameter("C_OFFSET_Î¸"));
 
-			gData.Append(R2R_ID, pds.Component_ID, "T_ACC_1X", pds.GetParameter("T_ACC_1X"));
-			gData.Append(R2R_ID, pds.Component_ID, "T_ACC_1X_TG", pds.GetParameter("T_ACC_1X_TG"));
-			gData.Append(R2R_ID, pds.Component_ID, "T_ACC_1Y", pds.GetParameter("T_ACC_1Y"));
-			gData.Append(R2R_ID, pds.Component_ID, "T_ACC_1Y_TG", pds.GetParameter("T_ACC_1Y_TG"));
-			gData.Append(R2R_ID, pds.Component_ID, "T_ACC_2X", pds.GetParameter("T_ACC_2X"));
-			gData.Append(R2R_ID, pds.Component_ID, "T_ACC_2X_TG", pds.GetParameter("T_ACC_2X_TG"));
-			gData.Append(R2R_ID, pds.Component_ID, "T_ACC_3Y", pds.GetParameter("T_ACC_3Y"));
-			gData.Append(R2R_ID, pds.Component_ID, "T_ACC_3Y_TG", pds.GetParameter("T_ACC_3Y_TG"));
-			gData.Append(R2R_ID, pds.Component_ID, "T_OFFSET_X", pds.GetParameter("T_OFFSET_X"));
-			gData.Append(R2R_ID, pds.Component_ID, "T_OFFSET_Y", pds.GetParameter("T_OFFSET_¢ç"));
-			gData.Append(R2R_ID, pds.Component_ID, "T_OFFSET_£c", pds.GetParameter("T_OFFSET_£c"));
+			GlassData.Append(R2R_ID, pds.Component_ID, "T_ACC_1X", pds.GetParameter("T_ACC_1X"));
+			GlassData.Append(R2R_ID, pds.Component_ID, "T_ACC_1X_TG", pds.GetParameter("T_ACC_1X_TG"));
+			GlassData.Append(R2R_ID, pds.Component_ID, "T_ACC_1Y", pds.GetParameter("T_ACC_1Y"));
+			GlassData.Append(R2R_ID, pds.Component_ID, "T_ACC_1Y_TG", pds.GetParameter("T_ACC_1Y_TG"));
+			GlassData.Append(R2R_ID, pds.Component_ID, "T_ACC_2X", pds.GetParameter("T_ACC_2X"));
+			GlassData.Append(R2R_ID, pds.Component_ID, "T_ACC_2X_TG", pds.GetParameter("T_ACC_2X_TG"));
+			GlassData.Append(R2R_ID, pds.Component_ID, "T_ACC_3Y", pds.GetParameter("T_ACC_3Y"));
+			GlassData.Append(R2R_ID, pds.Component_ID, "T_ACC_3Y_TG", pds.GetParameter("T_ACC_3Y_TG"));
+			GlassData.Append(R2R_ID, pds.Component_ID, "T_OFFSET_X", pds.GetParameter("T_OFFSET_X"));
+			GlassData.Append(R2R_ID, pds.Component_ID, "T_OFFSET_Y", pds.GetParameter("T_OFFSET_Y"));
+			GlassData.Append(R2R_ID, pds.Component_ID, "T_OFFSET_Î¸", pds.GetParameter("T_OFFSET_Î¸"));
 
 			result = true;
-			logger.debug(" Run to run ID:" + this.R2R_ID + " AddSample " + gData.toString());
+			logger.debug(" Run to run ID:" + this.R2R_ID + " AddSample " + pds.toString());
 		} catch (Exception e) {
-			logger.error(" Run to run ID:" + this.R2R_ID + " " + tools.StackTrace2String(e));
+			logger.error(" Run to run ID:" + this.R2R_ID + " " + ToolUtility.StackTrace2String(e));
 		}
 		return result;
 	}
@@ -432,7 +424,7 @@ public class PALR2R {
 			GlassValues.C_ACC_3Y_TG = Double.parseDouble(GlassDatas.GetParameter("C_ACC_3Y_TG"));
 			GlassValues.C_OFFSET_X = Double.parseDouble(GlassDatas.GetParameter("C_OFFSET_X"));
 			GlassValues.C_OFFSET_Y = Double.parseDouble(GlassDatas.GetParameter("C_OFFSET_Y"));
-			GlassValues.C_OFFSET_£c = Double.parseDouble(GlassDatas.GetParameter("C_OFFSET_£c"));
+			GlassValues.C_OFFSET_Î¸ = Double.parseDouble(GlassDatas.GetParameter("C_OFFSET_Î¸"));
 
 			GlassValues.T_ACC_1X = Double.parseDouble(GlassDatas.GetParameter("T_ACC_1X"));
 			GlassValues.T_ACC_1X_TG = Double.parseDouble(GlassDatas.GetParameter("T_ACC_1X_TG"));
@@ -444,12 +436,12 @@ public class PALR2R {
 			GlassValues.T_ACC_3Y_TG = Double.parseDouble(GlassDatas.GetParameter("T_ACC_3Y_TG"));
 			GlassValues.T_OFFSET_X = Double.parseDouble(GlassDatas.GetParameter("T_OFFSET_X"));
 			GlassValues.T_OFFSET_Y = Double.parseDouble(GlassDatas.GetParameter("T_OFFSET_Y"));
-			GlassValues.T_OFFSET_£c = Double.parseDouble(GlassDatas.GetParameter("T_OFFSET_£c"));
+			GlassValues.T_OFFSET_Î¸ = Double.parseDouble(GlassDatas.GetParameter("T_OFFSET_Î¸"));
 
 			result = true;
 			logger.debug(" Run to run ID:" + this.R2R_ID + " GlassDataConvert " + GlassValues.toString());
 		} catch (Exception e) {
-			logger.error(" Run to run ID:" + this.R2R_ID + " " + tools.StackTrace2String(e));
+			logger.error(" Run to run ID:" + this.R2R_ID + " " + ToolUtility.StackTrace2String(e));
 		}
 		return result;
 	}
@@ -468,8 +460,8 @@ public class PALR2R {
 			PdsValues.C_ACC_3Y = Double.parseDouble(pds.GetParameter("C_ACC_3Y"));
 			PdsValues.C_ACC_3Y_TG = Double.parseDouble(pds.GetParameter("C_ACC_3Y_TG"));
 			PdsValues.C_OFFSET_X = Double.parseDouble(pds.GetParameter("C_OFFSET_X"));
-			PdsValues.C_OFFSET_Y = Double.parseDouble(pds.GetParameter("C_OFFSET_¢ç"));
-			PdsValues.C_OFFSET_£c = Double.parseDouble(pds.GetParameter("C_OFFSET_£c"));
+			PdsValues.C_OFFSET_Y = Double.parseDouble(pds.GetParameter("C_OFFSET_Y"));
+			PdsValues.C_OFFSET_Î¸ = Double.parseDouble(pds.GetParameter("C_OFFSET_Î¸"));
 
 			PdsValues.T_ACC_1X = Double.parseDouble(pds.GetParameter("T_ACC_1X"));
 			PdsValues.T_ACC_1X_TG = Double.parseDouble(pds.GetParameter("T_ACC_1X_TG"));
@@ -480,13 +472,13 @@ public class PALR2R {
 			PdsValues.T_ACC_3Y = Double.parseDouble(pds.GetParameter("T_ACC_3Y"));
 			PdsValues.T_ACC_3Y_TG = Double.parseDouble(pds.GetParameter("T_ACC_3Y_TG"));
 			PdsValues.T_OFFSET_X = Double.parseDouble(pds.GetParameter("T_OFFSET_X"));
-			PdsValues.T_OFFSET_Y = Double.parseDouble(pds.GetParameter("T_OFFSET_¢ç"));
-			PdsValues.T_OFFSET_£c = Double.parseDouble(pds.GetParameter("T_OFFSET_£c"));
+			PdsValues.T_OFFSET_Y = Double.parseDouble(pds.GetParameter("T_OFFSET_Y"));
+			PdsValues.T_OFFSET_Î¸ = Double.parseDouble(pds.GetParameter("T_OFFSET_Î¸"));
 
 			result = true;
 			logger.debug(" Run to run ID:" + this.R2R_ID + " PdsDataConvert " + PdsValues.toString());
 		} catch (Exception e) {
-			logger.error(" Run to run ID:" + this.R2R_ID + " " + tools.StackTrace2String(e));
+			logger.error(" Run to run ID:" + this.R2R_ID + " " + ToolUtility.StackTrace2String(e));
 		}
 		return result;
 	}
@@ -535,21 +527,32 @@ public class PALR2R {
 						+ Math.abs(pds.T_ACC_3Y - pds.T_ACC_3Y_TG) + " > 0.3");
 			}
 		} catch (Exception e) {
-			logger.error(" Run to run ID:" + this.R2R_ID + " " + tools.StackTrace2String(e));
+			logger.error(" Run to run ID:" + this.R2R_ID + " " + ToolUtility.StackTrace2String(e));
 		}
 		
 		return result;
 	}
 
-	private void initial(ConfigBase cfg) {
+	private void initial() {
 		try {
+			ConfigBase cfg = Config.Lookup(this.R2R_ID);
+			if (cfg.Get("WaitCountSet").equals("")) {
+				this.WaitCountSet = 5;
+			} else {
+				try {
+					this.WaitCountSet = Integer.parseInt(cfg.Get("WaitCountSet"));
+				} catch (Exception e) {
+					this.WaitCountSet = 5;
+				}
+			}
+			
 			if (cfg.Get("SampleSize").equals("")) {
-				this.SampleSize = 10;
+				this.SampleSize = 5;
 			} else {
 				try {
 					this.SampleSize = Integer.parseInt(cfg.Get("SampleSize"));
 				} catch (Exception e) {
-					this.SampleSize = 10;
+					this.SampleSize = 5;
 				}
 			}
 
@@ -573,23 +576,24 @@ public class PALR2R {
 				}
 			}
 		} catch (Exception e) {
-			logger.error(" Run to run ID:" + this.R2R_ID + " " + tools.StackTrace2String(e));
+			logger.error(" Run to run ID:" + this.R2R_ID + " " + ToolUtility.StackTrace2String(e));
 		}
 	}
 
-	private void UpdateConfig(Config cfg) {
+	private void UpdateConfig() {
 		try {
 
-			cfg.Update(this.R2R_ID, "WaitCount", String.valueOf(this.WaitCount));
+			Config.Update(this.R2R_ID, "WaitCount", String.valueOf(this.WaitCount));
+			Config.Update(this.R2R_ID, "WaitCountSet", String.valueOf(this.WaitCountSet));
 
 			if (this.WaitingForConfirm == true) {
-				cfg.Update(this.R2R_ID, "WaitingForConfirm", "T");
+				Config.Update(this.R2R_ID, "WaitingForConfirm", "T");
 			} else {
-				cfg.Update(this.R2R_ID, "WaitingForConfirm", "F");
+				Config.Update(this.R2R_ID, "WaitingForConfirm", "F");
 			}
 
 		} catch (Exception e) {
-			logger.error(" Run to run ID:" + this.R2R_ID + " " + tools.StackTrace2String(e));
+			logger.error(" Run to run ID:" + this.R2R_ID + " " + ToolUtility.StackTrace2String(e));
 		}
 	}
 }

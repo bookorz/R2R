@@ -4,19 +4,16 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+
 import org.apache.log4j.Logger;
 
 import com.innolux.R2R.common.ToolUtility;
-import com.innolux.R2R.common.base.ConfigBase;
 import com.innolux.R2R.common.database.DBCollection;
 
-public class Config {
-
+public class Feedback {
 	private static Logger logger = Logger.getLogger(Config.class);
-	
-	
-
-	public static void Update(String R2R_ID, String Key, String Value) {
+	//R2R_ID , UpdateTime , Comment
+	public static void Update(String R2R_ID, long updateTime ,String comment) {
 		Connection conn = null;
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -27,7 +24,7 @@ public class Config {
 			conn = DBCollection.R2RDB.getConnection();
 			stmt = conn.createStatement();
 
-			SQL = "select * from config t where t.R2R_ID = '" + R2R_ID + "' and t.key = '" + Key + "'";
+			SQL = "select * from feedback t where t.R2R_ID = '" + R2R_ID + "'";
 			logger.debug(SQL);
 
 			rs = stmt.executeQuery(SQL);
@@ -39,15 +36,14 @@ public class Config {
 			rs.close();
 			if (rowCount != 0) {
 
-				SQL = "update config t set t.value='" + Value + "' where t.R2R_ID = '" + R2R_ID + "' and t.key = '"
-						+ Key + "'";
+				SQL = "update feedback t set t.UpdateTime=" + updateTime + ",t.comment='"+comment+"' where t.R2R_ID = '" + R2R_ID + "'";					
 
 				logger.debug(SQL);
 				stmt.executeUpdate(SQL);
 
 			} else {
 
-				SQL = "insert into config (R2R_ID,key,value) values('" + R2R_ID + "','" + Key + "','" + Value + "')";
+				SQL = "insert into config (R2R_ID,UpdateTime,t.comment) values('" + R2R_ID + "'," + updateTime + ",'"+comment+"')";
 
 				logger.debug(SQL);
 
@@ -77,34 +73,31 @@ public class Config {
 			}
 		}
 	}
-
-	public static ConfigBase Lookup(String R2R_ID) {
-		ConfigBase result = new ConfigBase();
-		result.R2R_ID = R2R_ID;
+	
+	public static long Get(String R2R_ID) {
 		Connection conn = null;
 		Statement stmt = null;
 		ResultSet rs = null;
-		String SQL = "select * from config t where t.R2R_ID = '" + R2R_ID + "'";
-		logger.debug(SQL);
+		long result = 0;
+	
+		String SQL = "";
+
 		try {
-
 			conn = DBCollection.R2RDB.getConnection();
-
 			stmt = conn.createStatement();
+
+			SQL = "select * from feedback t where t.R2R_ID = '" + R2R_ID + "'";
+			logger.debug(SQL);
 
 			rs = stmt.executeQuery(SQL);
 
+
 			while (rs.next()) {
-
-				String key = rs.getString("key");
-				String value = "";
-				if(rs.getString("value")!=null){
-					value = rs.getString("value");
-				}
-				result.Put(key, value);
-
+				result = rs.getLong("UpdateTime");
 			}
-			logger.debug(result.toString());
+			rs.close();
+			
+
 		} catch (Exception e) {
 			logger.error(ToolUtility.StackTrace2String(e));
 
@@ -118,7 +111,9 @@ public class Config {
 			}
 			if (conn != null) {
 				try {
+
 					DBCollection.R2RDB.closeConnection(conn);
+
 				} catch (SQLException e) {
 					logger.error(ToolUtility.StackTrace2String(e));
 				}
@@ -126,5 +121,4 @@ public class Config {
 		}
 		return result;
 	}
-
 }

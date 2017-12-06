@@ -23,7 +23,7 @@ public class BC {
 	public String IP = "";
 	public String Name = "";
 	private Logger logger = Logger.getLogger(this.getClass());
-	private ToolUtility tools = new ToolUtility();
+	
 	private OracleDB BC;
 
 	@Override
@@ -60,14 +60,14 @@ public class BC {
 			}
 			rs.close();
 		} catch (Exception e) {
-			logger.error(tools.StackTrace2String(e));
+			logger.error(ToolUtility.StackTrace2String(e));
 
 		} finally {
 			if (stmt != null) {
 				try {
 					stmt.close();
 				} catch (SQLException e) {
-					logger.error(tools.StackTrace2String(e));
+					logger.error(ToolUtility.StackTrace2String(e));
 				}
 			}
 			if (conn != null) {
@@ -76,7 +76,7 @@ public class BC {
 					DEMS.closeConnection(conn);
 
 				} catch (SQLException e) {
-					logger.error(tools.StackTrace2String(e));
+					logger.error(ToolUtility.StackTrace2String(e));
 				}
 			}
 		}
@@ -112,14 +112,14 @@ public class BC {
 			}
 			rs.close();
 		} catch (Exception e) {
-			logger.error(tools.StackTrace2String(e));
+			logger.error(ToolUtility.StackTrace2String(e));
 
 		} finally {
 			if (stmt != null) {
 				try {
 					stmt.close();
 				} catch (SQLException e) {
-					logger.error(tools.StackTrace2String(e));
+					logger.error(ToolUtility.StackTrace2String(e));
 				}
 			}
 			if (conn != null) {
@@ -128,7 +128,7 @@ public class BC {
 					BC.closeConnection(conn);
 
 				} catch (SQLException e) {
-					logger.error(tools.StackTrace2String(e));
+					logger.error(ToolUtility.StackTrace2String(e));
 				}
 			}
 		}
@@ -165,14 +165,14 @@ public class BC {
 			}
 			rs.close();
 		} catch (Exception e) {
-			logger.error(tools.StackTrace2String(e));
+			logger.error(ToolUtility.StackTrace2String(e));
 
 		} finally {
 			if (stmt != null) {
 				try {
 					stmt.close();
 				} catch (SQLException e) {
-					logger.error(tools.StackTrace2String(e));
+					logger.error(ToolUtility.StackTrace2String(e));
 				}
 			}
 			if (conn != null) {
@@ -181,7 +181,7 @@ public class BC {
 					BC.closeConnection(conn);
 
 				} catch (SQLException e) {
-					logger.error(tools.StackTrace2String(e));
+					logger.error(ToolUtility.StackTrace2String(e));
 				}
 			}
 		}
@@ -230,14 +230,14 @@ public class BC {
 			}
 			rs.close();
 		} catch (Exception e) {
-			logger.error(tools.StackTrace2String(e));
+			logger.error(ToolUtility.StackTrace2String(e));
 
 		} finally {
 			if (stmt != null) {
 				try {
 					stmt.close();
 				} catch (SQLException e) {
-					logger.error(tools.StackTrace2String(e));
+					logger.error(ToolUtility.StackTrace2String(e));
 				}
 			}
 			if (conn != null) {
@@ -246,7 +246,7 @@ public class BC {
 					BC.closeConnection(conn);
 
 				} catch (SQLException e) {
-					logger.error(tools.StackTrace2String(e));
+					logger.error(ToolUtility.StackTrace2String(e));
 				}
 			}
 		}
@@ -294,14 +294,14 @@ public class BC {
 			stmt.executeUpdate(SQL);
 			result = true;
 		} catch (Exception e) {
-			logger.error(tools.StackTrace2String(e));
+			logger.error(ToolUtility.StackTrace2String(e));
 
 		} finally {
 			if (stmt != null) {
 				try {
 					stmt.close();
 				} catch (SQLException e) {
-					logger.error(tools.StackTrace2String(e));
+					logger.error(ToolUtility.StackTrace2String(e));
 				}
 			}
 			if (conn != null) {
@@ -310,7 +310,7 @@ public class BC {
 					BC.closeConnection(conn);
 
 				} catch (SQLException e) {
-					logger.error(tools.StackTrace2String(e));
+					logger.error(ToolUtility.StackTrace2String(e));
 				}
 			}
 		}

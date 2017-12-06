@@ -99,9 +99,9 @@ public class TibcoRvListener implements TibrvMsgCallback {
 					
 			}
 		} catch (Exception e) {
-			ToolUtility tools = new ToolUtility();
+			
 			logger.error("subject:"+subject+" msg:"+data);
-			logger.error(tools.StackTrace2String(e));
+			logger.error(ToolUtility.StackTrace2String(e));
 		}
 	}
 }

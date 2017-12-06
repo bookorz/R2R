@@ -20,7 +20,9 @@ public class GlassDataBase {
 	}
 	
 	public void StoreParameter(String name, String value) {
+		
 		if (!_ParamCollection.containsKey(name)) {
+			
 			_ParamCollection.put(name, value);
 		}
 	}
