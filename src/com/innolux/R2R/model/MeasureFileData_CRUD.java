@@ -25,8 +25,8 @@ public class MeasureFileData_CRUD {
 		return result;
 	}
 	
-	public static MeasureFileData read(String EqpId,String SubEqpId,String Recipe){
-		MeasureFileData result = null;
+	public static List<MeasureFileData> read(String EqpId,String SubEqpId, String Recipe,String PreEqpId,String PreSubEqpId, String PreRecipe){
+		List<MeasureFileData> result = null;
 		try{
 			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
 
@@ -39,42 +39,53 @@ public class MeasureFileData_CRUD {
 			if(!Recipe.equals("")){
 				sqlWhereMap.put("Recipe", Recipe);
 			}
-			List<MeasureFileData> tmp = MeasureFileData_Dao.findAllByConditions(sqlWhereMap, MeasureFileData.class);
-			if(tmp.size()!=0) {
-				result = tmp.get(0);
+			if(!EqpId.equals("")){
+				sqlWhereMap.put("PreEqpId", PreEqpId);
 			}
+			if(!SubEqpId.equals("")){
+				sqlWhereMap.put("PreSubEqpId", PreSubEqpId);
+			}
+			if(!Recipe.equals("")){
+				sqlWhereMap.put("PreRecipe", PreRecipe);
+			}
+			result = MeasureFileData_Dao.findAllByConditions(sqlWhereMap, MeasureFileData.class);
+			
 		}catch(Exception e){
 			logger.error(ToolUtility.StackTrace2String(e));
 		}
 		return result;
-	}
+	}	
 	
-	public static MeasureFileData update(MeasureFileData ft){
-		MeasureFileData result = null;
-		try{
-			MeasureFileData_Dao.update(ft);
-		}catch(Exception e){
-			logger.error(ToolUtility.StackTrace2String(e));
-		}
-		return result;
-	}
-	
-	public static MeasureFileData delete(String PreEqpId,String PreEqpRecipe){
-		MeasureFileData result = null;
+	public static boolean delete(String EqpId,String SubEqpId, String Recipe,String PreEqpId,String PreSubEqpId, String PreRecipe){
+		
 		try{
 			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
 
-			if(!PreEqpId.equals("")){
+			if(!EqpId.equals("")){
+				sqlWhereMap.put("EqpId", EqpId);
+			}
+			if(!SubEqpId.equals("")){
+				sqlWhereMap.put("SubEqpId", SubEqpId);
+			}
+			if(!Recipe.equals("")){
+				sqlWhereMap.put("Recipe", Recipe);
+			}
+			if(!EqpId.equals("")){
 				sqlWhereMap.put("PreEqpId", PreEqpId);
 			}
-			if(!PreEqpRecipe.equals("")){
-				sqlWhereMap.put("PreEqpRecipe", PreEqpRecipe);
+			if(!SubEqpId.equals("")){
+				sqlWhereMap.put("PreSubEqpId", PreSubEqpId);
+			}
+			if(!Recipe.equals("")){
+				sqlWhereMap.put("PreRecipe", PreRecipe);
 			}
 			
 			MeasureFileData_Dao.deleteAllByConditions(sqlWhereMap, MeasureFileData.class);
+			return true;
 		}catch(Exception e){
 			logger.error(ToolUtility.StackTrace2String(e));
+			return false;
 		}
-		return result;
+		
 	}
 }

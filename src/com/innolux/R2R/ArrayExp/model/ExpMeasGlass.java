@@ -7,24 +7,25 @@ import java.util.List;
  * 
  */
 public class ExpMeasGlass {
+	String productName; // mandatory
+	String expID; // mandatory
+	String expRcpID; // mandatory
+	String measStepID; // mandatory
+	String measRcpID; // mandatory
+	int adcOrFdc; // mandatory
+
 	String glassID;
-	String productName;
 	
 	String expSupplier; // Nikon or Canon
-	String expID;
-	String expRcpID;
+	String expStepID; 
 	String expRcpName;
 	
-	String measStepID;
-	String measRcpID;
-
-	static final int OL = 1;
-	static final int DOL = 2; 
-	static final int ADC = 1; 
-	static final int FDC = 2; 
+	public static final int OL = 1;
+	public static final int DOL = 2; 
+	public static final int ADC = 1; 
+	public static final int FDC = 2; 
 	
 	int olOrDol;
-	int adcOrFdc;
 	
 	Vector2D minOL;
 	Vector2D maxOL;
@@ -36,13 +37,14 @@ public class ExpMeasGlass {
 
 	double ratio;
 
-	List<Vector2D> measResultList;
+	List<Vector2D> measPointList;
 	
 	// 240point ArrayList:  average, sigma
 	// method: 座標轉換
 
 	public ExpMeasGlass(){
-		this.measResultList = new ArrayList<Vector2D>();
+		this.measPointList = new ArrayList<Vector2D>();
+		this.adcOrFdc = 0;
 	}
 
 	public String getGlassID() {
@@ -76,7 +78,15 @@ public class ExpMeasGlass {
 	public void setExpID(String expID) {
 		this.expID = expID;
 	}
+	
+	public String getExpStepID() {
+		return expStepID;
+	}
 
+	public void setExpStepID(String expStepID) {
+		this.expStepID = expStepID;
+	}
+	
 	public String getExpRcpID() {
 		return expRcpID;
 	}
@@ -118,12 +128,11 @@ public class ExpMeasGlass {
 	}
 
 	public int getAdcOrFdc() {
-		return AdcOrFdc;
+		return this.adcOrFdc;
 	}
 
 	public void setAdcOrFdc(int adcOrFdc) {
 		this.adcOrFdc = adcOrFdc;
-		setOlOrDol(ExpMeasGlass.OL); // both ADC & FDC is OL
 	}
 
 	public Vector2D getMinOL() {
@@ -182,13 +191,15 @@ public class ExpMeasGlass {
 		this.ratio = ratio;
 	}
 
-	public List<Vector2D> getMeasResultList() {
-		return measResultList;
+	public List<Vector2D> getMeasPointList() {
+		return measPointList;
 	}
 
-	public void setMeasResultList(List<Vector2D> measResultList) {
-		this.measResultList = measResultList;
+	public void setMeasPointList(List<Vector2D> measPointList) {
+		this.measPointList = measPointList;
 	}
+
+	
 	
 	
 

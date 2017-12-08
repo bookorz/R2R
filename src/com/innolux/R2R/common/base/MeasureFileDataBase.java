@@ -10,42 +10,62 @@ import com.innolux.R2R.common.ToolUtility;
 
 public class MeasureFileDataBase {
 	private Logger logger = Logger.getLogger(this.getClass());
-	private Hashtable<String, List<String>> data = new Hashtable<String, List<String>>();
+	private Hashtable<String, Hashtable<Long,String>> data = new Hashtable<String, Hashtable<Long,String>>();
 	private String currentHeader = "";
-	
-	public void Store(String raw){
-		if (raw.indexOf("_BEGIN") != -1) {
-			currentHeader = raw.replace("_BEGIN", "");
-		} else if (raw.indexOf("_END") != -1) {
-			currentHeader = "";
-		} else {
-			if (!currentHeader.equals("")) {
-				if (data.containsKey(currentHeader)) {
-					List<String> tmp = data.get(currentHeader);
-					tmp.add(raw);
-				} else {
-					List<String> tmp = new ArrayList<String>();
-					tmp.add(raw);
-					data.put(currentHeader, tmp);
-				}
-			}
-		}
-	}
-	
-	public String FetchInfo(String headerName,String Name){
-		String result = "";
-		
+
+	public void Store(String headerName,long index, String raw) {
 		try {
 			if (data.containsKey(headerName)) {
-				List<String> valueData = data.get(headerName);
-				if (valueData.size()!= 0) {
-					for(String eachRow:valueData){
-						String name = "";
+				Hashtable<Long,String> tmp = data.get(headerName);
+				tmp.put(index,raw);
+			} else {
+				Hashtable<Long,String> tmp = new Hashtable<Long,String>();
+				tmp.put(index,raw);
+				data.put(currentHeader, tmp);
+			}
+		} catch (Exception e) {
+			logger.error(ToolUtility.StackTrace2String(e));
+		}
+	}
+
+	public void ReadLine(String raw) {
+		try {
+			if (raw.indexOf("_BEGIN") != -1) {
+				currentHeader = raw.replace("_BEGIN", "");
+			} else if (raw.indexOf("_END") != -1) {
+				currentHeader = "";
+			} else {
+				if (!currentHeader.equals("")) {
+					if (data.containsKey(currentHeader)) {
+						Hashtable<Long,String> tmp = data.get(currentHeader);
+						tmp.put((long)tmp.size(),raw);
+					} else {
+						Hashtable<Long,String> tmp = new Hashtable<Long,String>();
+						tmp.put((long)tmp.size(),raw);
+						data.put(currentHeader, tmp);
+					}
+				}
+			}
+		} catch (Exception e) {
+			logger.error(ToolUtility.StackTrace2String(e));
+		}
+	}
+
+	public String FetchInfo(String headerName, String Name) {
+		String result = "";
+
+		try {
+			if (data.containsKey(headerName)) {
+				Hashtable<Long,String> valueData = data.get(headerName);				
+				if (valueData.size() != 0) {
 					
-						String[] rowAry = eachRow.split(":");
-						if(rowAry.length>=2){
+					for (int i = 0;i<valueData.size();i++) {
+						String name = "";
+						
+						String[] rowAry = valueData.get(i).split(":");
+						if (rowAry.length >= 2) {
 							name = rowAry[0];
-							if(name.equals(Name)){
+							if (name.equals(Name)) {
 								result = rowAry[1];
 								break;
 							}
@@ -59,12 +79,12 @@ public class MeasureFileDataBase {
 
 		return result;
 	}
-	
-	public String FetchValue(String headerName, String Name, String R2R_ID) {
+
+	public String FetchValue(String headerName, String Name) {
 		String result = "";
 		try {
 			if (data.containsKey(headerName)) {
-				List<String> valueData = data.get(headerName);
+				Hashtable<Long,String> valueData = data.get(headerName);
 				if (valueData.size() >= 2) {
 					String[] header = valueData.get(0).split(",");
 					String[] value = valueData.get(1).split(",");
@@ -75,7 +95,7 @@ public class MeasureFileDataBase {
 							}
 						}
 					} else {
-						logger.error("Run to run ID:" + R2R_ID +" Header's qty is not match to value's qty.");
+						logger.error("Header's qty is not match to value's qty.");
 					}
 				}
 			}
@@ -85,12 +105,12 @@ public class MeasureFileDataBase {
 		return result;
 	}
 
-	public List<String> FetchList(String headerName, String Name, String R2R_ID) {
+	public List<String> FetchList(String headerName, String Name) {
 		List<String> result = new ArrayList<String>();
 		int headerIdx = -1;
 		try {
 			if (data.containsKey(headerName)) {
-				List<String> valueData = data.get(headerName);
+				Hashtable<Long,String> valueData = data.get(headerName);
 				if (valueData.size() >= 2) {
 					for (int i = 0; i < valueData.size(); i++) {
 						if (i == 0) {
@@ -113,8 +133,9 @@ public class MeasureFileDataBase {
 				}
 			}
 		} catch (Exception e) {
-			logger.error("Run to run ID:" + R2R_ID + " " +ToolUtility.StackTrace2String(e));
+			logger.error(ToolUtility.StackTrace2String(e));
 		}
 		return result;
 	}
+	
 }

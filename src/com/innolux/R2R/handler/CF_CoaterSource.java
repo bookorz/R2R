@@ -28,10 +28,10 @@ public class CF_CoaterSource implements IFileData {
 		try {
 			String EqpId = data.FetchInfo("HEADER", "EQ_ID");
 			String SubEqpId = data.FetchInfo("HEADER", "SUBEQ_ID");
-			String R2R_ID = EqpId + "_" + SubEqpId;
-			String PreEqpId1 = data.FetchValue("PDS_GLASS_DATA", "PreEQ_ID_1", R2R_ID);
-			String PreSubEqpId1 = data.FetchValue("PDS_GLASS_DATA", "PreSubEQ_ID_1", R2R_ID);
-			String Recipe = data.FetchValue("GLASS_DATA", "RECIPE_ID", R2R_ID);
+			
+			String PreEqpId1 = data.FetchValue("PDS_GLASS_DATA", "PreEQ_ID_1");
+			String PreSubEqpId1 = data.FetchValue("PDS_GLASS_DATA", "PreSubEQ_ID_1");
+			String Recipe = data.FetchValue("GLASS_DATA", "RECIPE_ID");
 
 //			String Engage_Col = Status.Get(R2R_ID, Recipe, "Engage_Col");
 //			String Plunge_Col = Status.Get(R2R_ID, Recipe, "Plunge_Col");

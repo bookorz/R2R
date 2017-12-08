@@ -15,30 +15,30 @@ public class T_AutoFeedbackSetting_CRUD {
 	private static GenericDao<T_AutoFeedbackSetting> T_AutoFeedbackSetting_DAO = 
 			new JdbcGenericDaoImpl <T_AutoFeedbackSetting> (GlobleVar.R2R_DB);
 	
-	public static T_AutoFeedbackSetting read(String Primarykey, String ActiveFlag, String EqpID,
-		String ExpStepId, String MeaStepId, String ExpRcpId, String ExpRcpName, String MeaRcp, 
-		String FeedbackMode, double UUpperLimit, double LUpperLimit, double ULowerLimit, 
-		double LLowerLimit, double Ratio, double Sigma, int PopulationSize, int SampleSize, 
-		long Expiretime){
+	public static T_AutoFeedbackSetting read(String Product, String ExpID, String ExpRcpID,
+										 String MeaRcpID, String MeaStepID, int AdcOrFdc){
 		try{
 			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
 
-			if(!Primarykey.equals("")){
-				sqlWhereMap.put("Primarykey", Primarykey);
-			}
 			if(!Product.equals("")){
 				sqlWhereMap.put("Product", Product);
 			}
-			if(!Exp_Step_ID.equals("")){
-				sqlWhereMap.put("Exp_Step_ID", Exp_Step_ID);
+			if(!ExpID.equals("")){
+				sqlWhereMap.put("ExpID", ExpID);
 			}
-			if(!Exp_Rcp_ID.equals("")){
-				sqlWhereMap.put("Exp_Rcp_ID", Exp_Rcp_ID);
+			if(!ExpRcpID.equals("")){
+				sqlWhereMap.put("ExpRcpID", ExpRcpID);
 			}
-			if(!Exp_Rcp_Name.equals("")){
-				sqlWhereMap.put("Exp_Rcp_Name", Exp_Rcp_Name);
+			if(!MeaRcpID.equals("")){
+				sqlWhereMap.put("MeaRcpID", MeaRcpID);
 			}
-			List<T_ExpRcpID2Name> tmp = T_ExpRcpID2Name_DAO.findAllByConditions(sqlWhereMap, T_ExpRcpID2Name.class);
+			if(!MeaStepID.equals("")){
+				sqlWhereMap.put("MeaStepID", MeaStepID);
+			}
+			if(AdcOrFdc != 0){
+				sqlWhereMap.put("AdcOrFdc", MeaStepID);
+			}
+			List<T_AutoFeedbackSetting> tmp = T_AutoFeedbackSetting_DAO.findAllByConditions(sqlWhereMap, T_AutoFeedbackSetting.class);
 			if(tmp.size()!=0) {
 				return tmp.get(0);
 			}
