@@ -296,32 +296,32 @@ public class PALR2R {
 				C1X2X_Avg = C1X2X_Avg / ((double) GlassDatas.size() * (double) 2.0);
 				C_OFFSET_X = (C1X2X_Target - C1X2X_Avg) / (double) 2.0;
 				logger.debug(" Run to run ID:" + this.R2R_ID + " C_OFFSET_X:" + C_OFFSET_X);
-				if (Math.abs(C1X2X_Target - C1X2X_Avg) <= 0.5) {
-					C_OFFSET_X = 0; // If less than target 0.5 ,do nothing.
-				} else {
+				//if (Math.abs(C1X2X_Target - C1X2X_Avg) <= 0.5) {
+				//	C_OFFSET_X = 0; // If less than target 0.5 ,do nothing.
+				//} else {
 					this.WaitingForConfirm = true;
-				}
+				//}
 				C_OFFSET_X += currentPdsValues.C_OFFSET_X;
 				result.StoreRegulation(4, ToolUtility.demical2Hex(C_OFFSET_X, 0.01,this.R2R_ID));
 				// Y Way
 				C1Y3Y_Avg = C1Y3Y_Avg / ((double) GlassDatas.size() * (double) 2.0);
 				C_OFFSET_Y = (C1Y3Y_Target - C1Y3Y_Avg) / (double) 2.0;
 				logger.debug(" Run to run ID:" + this.R2R_ID + " C_OFFSET_Y:" + C_OFFSET_Y);
-				if (Math.abs(C1Y3Y_Avg - C1Y3Y_Target) <= 0.5) {
-					C_OFFSET_Y = 0; // If less than target 0.5 ,do nothing.
-				} else {
+//				if (Math.abs(C1Y3Y_Avg - C1Y3Y_Target) <= 0.5) {
+//					C_OFFSET_Y = 0; // If less than target 0.5 ,do nothing.
+//				} else {
 					this.WaitingForConfirm = true;
-				}
+				//}
 				C_OFFSET_Y += currentPdsValues.C_OFFSET_Y;
 				result.StoreRegulation(5, ToolUtility.demical2Hex(C_OFFSET_Y, 0.01,this.R2R_ID));
 				// θ Way
 				C_OFFSET_θ = (C1Y_Avg - C3Y_Avg) / ((double) GlassDatas.size() * (double) 2.0);
 				logger.debug(" Run to run ID:" + this.R2R_ID + " C_OFFSET_θ:" + C_OFFSET_θ);
-				if (Math.abs(C3Y_Avg - C1Y_Avg) <= 0.05) {
-					C_OFFSET_θ = 0; // If less than target 0.05 ,do nothing.
-				} else {
+//				if (Math.abs(C3Y_Avg - C1Y_Avg) <= 0.05) {
+//					C_OFFSET_θ = 0; // If less than target 0.05 ,do nothing.
+//				} else {
 					this.WaitingForConfirm = true;
-				}
+//				}
 				C_OFFSET_θ += currentPdsValues.C_OFFSET_θ;
 				result.StoreRegulation(6, ToolUtility.demical2Hex(C_OFFSET_θ, 0.001,this.R2R_ID));
 				// CF Side end
@@ -331,32 +331,32 @@ public class PALR2R {
 				T1X2X_Avg = T1X2X_Avg / ((double) GlassDatas.size() * (double) 2.0);
 				T_OFFSET_X = (T1X2X_Target - T1X2X_Avg) / (double) 2.0;
 				logger.debug(" Run to run ID:" + this.R2R_ID + " T_OFFSET_X:" + T_OFFSET_X);
-				if (Math.abs(T1X2X_Target - T1X2X_Avg) <= 0.5) {
-					T_OFFSET_X = 0; // If less than target 0.5 ,do nothing.
-				} else {
+//				if (Math.abs(T1X2X_Target - T1X2X_Avg) <= 0.5) {
+//					T_OFFSET_X = 0; // If less than target 0.5 ,do nothing.
+//				} else {
 					this.WaitingForConfirm = true;
-				}
+//				}
 				T_OFFSET_X += currentPdsValues.T_OFFSET_X;
 				result.StoreRegulation(1, ToolUtility.demical2Hex(T_OFFSET_X, 0.01,this.R2R_ID));
 				// Y Way
 				T1Y3Y_Avg = T1Y3Y_Avg / ((double) GlassDatas.size() * (double) 2.0);
 				T_OFFSET_Y = (T1Y3Y_Avg - T1Y3Y_Target) / (double) 2.0;
 				logger.debug(" Run to run ID:" + this.R2R_ID + " T_OFFSET_Y:" + T_OFFSET_Y);
-				if (Math.abs(T1Y3Y_Avg - T1Y3Y_Target) <= 0.5) {
-					T_OFFSET_Y = 0; // If less than target 0.5 ,do nothing.
-				} else {
+//				if (Math.abs(T1Y3Y_Avg - T1Y3Y_Target) <= 0.5) {
+//					T_OFFSET_Y = 0; // If less than target 0.5 ,do nothing.
+//				} else {
 					this.WaitingForConfirm = true;
-				}
+//				}
 				T_OFFSET_Y += currentPdsValues.T_OFFSET_Y;
 				result.StoreRegulation(2, ToolUtility.demical2Hex(T_OFFSET_Y, 0.01,this.R2R_ID));
 				// θ Way
 				T_OFFSET_θ = (T3Y_Avg - T1Y_Avg) / ((double) GlassDatas.size() * (double) 2.0);
 				logger.debug(" Run to run ID:" + this.R2R_ID + " T_OFFSET_θ:" + T_OFFSET_θ);
-				if (Math.abs(T1Y_Avg - T3Y_Avg) <= 0.05) {
-					T_OFFSET_θ = 0; // If less than target 0.05 ,do nothing.
-				} else {
+//				if (Math.abs(T1Y_Avg - T3Y_Avg) <= 0.05) {
+//					T_OFFSET_θ = 0; // If less than target 0.05 ,do nothing.
+//				} else {
 					this.WaitingForConfirm = true;
-				}
+//				}
 				T_OFFSET_θ += currentPdsValues.T_OFFSET_θ;
 				result.StoreRegulation(3, ToolUtility.demical2Hex(T_OFFSET_θ, 0.001,this.R2R_ID));
 				// TFT Side end

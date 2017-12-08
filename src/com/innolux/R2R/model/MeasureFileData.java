@@ -20,6 +20,20 @@ public class MeasureFileData {
     }  
     
     /** 
+     * SubEqpId
+     */  
+    @Column("SubEqpId")  
+    private String SubEqpId; 
+	
+	public String getSubEqpId() {  
+        return SubEqpId;  
+    }  
+  
+    public void setSubEqpId(String SubEqpId) {  
+        this.SubEqpId = SubEqpId;  
+    }  
+    
+    /** 
      * Recipe
      */  
     @Column("Recipe")  
@@ -48,6 +62,20 @@ public class MeasureFileData {
     }  
     
     /** 
+     * PreSubEqpId
+     */  
+    @Column("PreSubEqpId")  
+    private String PreSubEqpId; 
+	
+	public String getPreSubEqpId() {  
+        return PreSubEqpId;  
+    }  
+  
+    public void setPreSubEqpId(String PreSubEqpId) {  
+        this.PreSubEqpId = PreSubEqpId;  
+    }  
+    
+    /** 
      * PreEqpRecipe
      */  
     @Column("PreEqpRecipe")  
@@ -59,6 +87,20 @@ public class MeasureFileData {
   
     public void setPreEqpRecipe(String PreEqpRecipe) {  
         this.PreEqpRecipe = PreEqpRecipe;  
+    }  
+    
+    /** 
+     * GlassID
+     */  
+    @Column("GlassID")  
+    private String GlassID; 
+	
+	public String getGlassID() {  
+        return GlassID;  
+    }  
+  
+    public void setGlassID(String GlassID) {  
+        this.GlassID = GlassID;  
     }  
     
     /** 
@@ -107,13 +149,13 @@ public class MeasureFileData {
      * RowData
      */  
     @Column("RowData")  
-    private long RowData; 
+    private String RowData; 
 	
-	public long getRowData() {  
+	public String getRowData() {  
         return RowData;  
     }  
   
-    public void setRowData(long RowData) {  
+    public void setRowData(String RowData) {  
         this.RowData = RowData;  
     }  
     @Override  
