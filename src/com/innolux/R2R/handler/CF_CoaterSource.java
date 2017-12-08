@@ -17,9 +17,9 @@ import com.innolux.services.MeasureFileReader;
 public class CF_CoaterSource implements IFileData {
 	private static Logger logger = Logger.getLogger(CF_CoaterSource.class);
 
-	public CF_CoaterSource(String _FilePatch) {
+	public CF_CoaterSource(String _SourcePatch,String _NgPath) {
 		MeasureFileReader fileService = new MeasureFileReader();
-		fileService.setFileHandler(this, _FilePatch);
+		fileService.setFileHandler(this, _SourcePatch,_NgPath);
 		fileService.start();
 	}
 
