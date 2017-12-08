@@ -6,7 +6,7 @@ import com.innolux.annotation.Id;
 
 // P33
 @Entity("Canon_Exp_SiteNo_2_ScanNo") // table name
-public class Canon_Exp_SiteNo_2_ScanNo {
+public class T_CanonExpSiteNo2ScanNo{
 	@Id("Primarykey")
 	private String Primarykey;
 
@@ -14,7 +14,7 @@ public class Canon_Exp_SiteNo_2_ScanNo {
 	private String Product;
 
 	@Column("Exp_Step_ID")
-	private String Exp_Step_ID;
+	private String ExpStepID;
 
 	@Column("SiteNo")
 	private String SiteNo;
@@ -38,12 +38,12 @@ public class Canon_Exp_SiteNo_2_ScanNo {
 		Product = product;
 	}
 
-	public String getExp_Step_ID() {
-		return Exp_Step_ID;
+	public String getExpStepID() {
+		return ExpStepID;
 	}
 
-	public void setExp_Step_ID(String exp_Step_ID) {
-		Exp_Step_ID = exp_Step_ID;
+	public void setExpStepID(String expStepID) {
+		ExpStepID = expStepID;
 	}
 
 	public String getSiteNo() {
@@ -61,13 +61,15 @@ public class Canon_Exp_SiteNo_2_ScanNo {
 	public void setScanNo(String scanNo) {
 		ScanNo = scanNo;
 	}
-
-	@Override
+	
+	
+	@Override 
 	public String toString() {
-		return "Canon_Exp_SiteNo_2_ScanNo [Primarykey=" + Primarykey + ", Product=" + Product + ", Exp_Step_ID="
-				+ Exp_Step_ID + ", SiteNo=" + SiteNo + ", ScanNo=" + ScanNo + "]";
+		return 
+		" Primarykey " + Primarykey +
+		" Product " + Product +
+		" ExpStepID " + ExpStepID +
+		" SiteNo " + SiteNo +
+		" ScanNo " + ScanNo;
 	}
-
-
-
 }

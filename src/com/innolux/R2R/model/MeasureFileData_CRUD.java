@@ -1,6 +1,7 @@
 package com.innolux.R2R.model;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -38,8 +39,10 @@ public class MeasureFileData_CRUD {
 			if(!Recipe.equals("")){
 				sqlWhereMap.put("Recipe", Recipe);
 			}
-			MeasureFileData_Dao.findAllByConditions(sqlWhereMap, MeasureFileData.class);
-			
+			List<MeasureFileData> tmp = MeasureFileData_Dao.findAllByConditions(sqlWhereMap, MeasureFileData.class);
+			if(tmp.size()!=0) {
+				result = tmp.get(0);
+			}
 		}catch(Exception e){
 			logger.error(ToolUtility.StackTrace2String(e));
 		}
