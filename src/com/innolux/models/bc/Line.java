@@ -4,11 +4,11 @@ import com.innolux.annotation.Column;
 import com.innolux.annotation.Entity;
 import com.innolux.annotation.Id;
 
-@Entity("main_bc_line") // 表名
+@Entity("main_bc_line") // table name
 public class Line {
 	
 	 /** 
-     * BC node RecipeSplit
+     * BC node RecipeSplit 
      */  
     @Id("hostlineid")  
     private String LineID; 
