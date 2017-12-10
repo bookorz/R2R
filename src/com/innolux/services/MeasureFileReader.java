@@ -161,5 +161,28 @@ public class MeasureFileReader extends Thread {
 			return false;
 		}
 	}
+	
+	public static List<MeasureFileDataBase> GetAllFile(String EqpId,String SubEqpId, String Recipe,String PreEqpId,String PreSubEqpId, String PreRecipe){
+		List<MeasureFileDataBase> result = new ArrayList<MeasureFileDataBase>();
+		try{
+			Map<String,MeasureFileDataBase> tmp = new HashMap<String,MeasureFileDataBase>();
+			List<MeasureFileData> rowDataList = MeasureFileData_CRUD.read(EqpId, SubEqpId, Recipe, PreEqpId, PreSubEqpId, PreRecipe);
+			for(MeasureFileData eachRow:rowDataList){
+				String key = eachRow.getFileName();
+				if(tmp.containsKey(key)){
+					tmp.get(key).Store(eachRow.getHeaderName(),eachRow.getRowIndex(),eachRow.getRowData());
+					
+				}else{
+					MeasureFileDataBase mFile = new MeasureFileDataBase();
+					mFile.Store(eachRow.getHeaderName(),eachRow.getRowIndex(),eachRow.getRowData());
+					tmp.put(key, mFile);
+				}
+			}
+			
+		}catch(Exception e){
+			logger.error("GetAllFile error:" + ToolUtility.StackTrace2String(e));
+		}
+		return result;
+	}
 
 }

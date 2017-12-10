@@ -8,4 +8,6 @@ public class GlobleVar {
 	private static String R2RDBUser = "runprod";
 	private static String R2RDBPwd = "runprod";
 	public static JdbcDaoHelper R2R_DB = new JdbcDaoHelper(R2RTNS, R2RDBUser, R2RDBPwd, 2);
+	
+	public static final String ErrorType = "Error";
 }

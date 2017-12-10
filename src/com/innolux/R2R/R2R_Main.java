@@ -5,6 +5,7 @@ import java.util.TimerTask;
 
 import com.innolux.R2R.common.ToolUtility;
 import com.innolux.R2R.common.rvHandler.TibcoRvSender;
+import com.innolux.R2R.handler.ArrayExp;
 import com.innolux.R2R.handler.RvDispatch;
 
 
@@ -14,9 +15,9 @@ public class R2R_Main {
 		//System.out.print(Integer.valueOf(String.valueOf(-5), 16).toString());
 //		ReportMonitor();
 //		
-		new RvDispatch().StartListen("tcp:8585", "INNOLUX.T2.PROD.PDS.PDSGLASSSEND.CELL.2CPAL100", "8585", "");
+		//new RvDispatch().StartListen("tcp:8585", "INNOLUX.T2.PROD.PDS.PDSGLASSSEND.CELL.2CPAL100", "8585", "");
 		
-		
+		//new ArrayExp("C:\\AryExp\\");
 	}
 
 	private static void ReportMonitor() {
