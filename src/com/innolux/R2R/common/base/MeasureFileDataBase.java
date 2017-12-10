@@ -31,7 +31,7 @@ public class MeasureFileDataBase {
 	public void ReadLine(String raw) {
 		try {
 			if (raw.indexOf("_BEGIN") != -1) {
-				currentHeader = raw.replace("_BEGIN", "");
+				currentHeader = raw.replace("_BEGIN", "").replace(",", "");
 			} else if (raw.indexOf("_END") != -1) {
 				currentHeader = "";
 			} else {
@@ -82,21 +82,22 @@ public class MeasureFileDataBase {
 
 	public String FetchValue(String headerName, String Name) {
 		String result = "";
-		try {
+		try { 
 			if (data.containsKey(headerName)) {
 				Hashtable<Long,String> valueData = data.get(headerName);
 				if (valueData.size() >= 2) {
-					String[] header = valueData.get(0).split(",");
-					String[] value = valueData.get(1).split(",");
-					if (header.length == value.length) {
+					String[] header = valueData.get((long)0).split(",");
+					String[] value = valueData.get((long)1).split(",");
+					//if (header.length == value.length) {
 						for (int i = 0; i < header.length; i++) {
 							if (header[i].equals(Name)) {
 								result = value[i];
+								break;
 							}
 						}
-					} else {
-						logger.error("Header's qty is not match to value's qty.");
-					}
+					//} else {
+					//	logger.error("Header's qty is not match to value's qty.");
+					//}
 				}
 			}
 		} catch (Exception e) {
@@ -114,17 +115,18 @@ public class MeasureFileDataBase {
 				if (valueData.size() >= 2) {
 					for (int i = 0; i < valueData.size(); i++) {
 						if (i == 0) {
-							String[] header = valueData.get(i).split(",");
+							String[] header = valueData.get((long)i).split(",");
 							for (int x = 0; x < header.length; x++) {
-								if (header[i].equals(Name)) {
-									headerIdx = i;
+								if (header[x].equals(Name)) {
+									headerIdx = x;
+									break;
 								}
 							}
 						} else {
 							if (headerIdx == -1) {
 								break;
 							} else {
-								String[] value = valueData.get(i).split(",");
+								String[] value = valueData.get((long)i).split(",");
 								result.add(value[headerIdx]);
 							}
 						}
@@ -136,6 +138,26 @@ public class MeasureFileDataBase {
 			logger.error(ToolUtility.StackTrace2String(e));
 		}
 		return result;
+	}
+	
+	public String getCsvValByRowCol(String Session, String keyCol, String keyStr, String correspondCol){
+		List<String> keyList = this.FetchList(Session, keyCol);
+		List<String> correspondList = this.FetchList(Session, correspondCol);
+		
+		if(keyList == null || correspondList == null){
+			logger.debug("ArrayExp getCsvValByRowCol: " + keyCol + " List = null || " + correspondCol + " List = null");
+			return "";
+		}else if(keyList.size() == 0 || correspondList.size() == 0){
+			logger.debug("ArrayExp getCsvValByRowCol: " + keyCol + " size = 0 || " + correspondCol + " size = 0");
+			return "";
+		}else if(keyList.size() != correspondList.size()){
+			logger.debug("ArrayExp getCsvValByRowCol: " + keyCol + " size != 0 " + correspondCol + " size");
+			return "";
+		}
+
+		int keyStrInd = keyList.indexOf(keyStr);
+		String correspondStr = correspondList.get(keyStrInd);
+		return correspondStr;
 	}
 	
 }

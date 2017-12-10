@@ -58,8 +58,8 @@ public class T_AutoFeedbackSetting{
 	@Column("Sample_Size")
 	private int SampleSize;
 
-	@Column("Expire_time")
-	private long Expiretime;
+	@Column("Expire_Time")
+	private long ExpireTime;
 
 	public String getPrimarykey() {
 		return Primarykey;
@@ -198,11 +198,11 @@ public class T_AutoFeedbackSetting{
 	}
 
 	public long getExpiretime() {
-		return Expiretime;
+		return ExpireTime;
 	}
 
-	public void setExpiretime(long expiretime) {
-		Expiretime = expiretime;
+	public void setExpiretime(long ExpireTime) {
+		this.ExpireTime = ExpireTime;
 	}
 
 	@Override 
@@ -224,7 +224,7 @@ public class T_AutoFeedbackSetting{
 			" Sigma " + Sigma +
 			" PopulationSize " + PopulationSize +
 			" SampleSize " + SampleSize +
-			" Expiretime " + Expiretime;
+			" ExpireTime " + ExpireTime;
 	}
 	
 }

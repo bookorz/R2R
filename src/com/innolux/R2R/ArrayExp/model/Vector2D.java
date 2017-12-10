@@ -5,7 +5,11 @@ public class Vector2D {
 	double yAxis;
 	double xValue;
 	double yValue;
-
+	
+	public Vector2D(){
+		
+	}
+	
 	public Vector2D(double xAxis, double yAxis, double xValue, double yValue){
 		this.xAxis = xAxis;
 		this.yAxis = yAxis;
