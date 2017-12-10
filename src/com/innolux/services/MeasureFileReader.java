@@ -3,7 +3,6 @@ package com.innolux.services;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -46,7 +45,7 @@ public class MeasureFileReader extends Thread {
 				for (int i = 0; i < listOfFiles.length; i++) {
 					try {
 						if (listOfFiles[i].isFile()) {
-							ReadFile(listOfFiles[i].getPath());
+							ReadFile(listOfFiles[i].getPath(),listOfFiles[i].getName());
 
 							listOfFiles[i].delete();
 
@@ -56,7 +55,7 @@ public class MeasureFileReader extends Thread {
 					} catch (Exception e1) {
 
 						logger.error("readFile error:" + ToolUtility.StackTrace2String(e1));
-						copyfile(listOfFiles[i].getPath(),this.NgPath);
+						copyfile(listOfFiles[i].getPath(),this.NgPath+listOfFiles[i].getName());
 					}
 				}
 			} catch (Exception e) {
@@ -68,15 +67,16 @@ public class MeasureFileReader extends Thread {
 		}
 	}
 
-	public void ReadFile(String srFile) throws Exception {
+	public void ReadFile(String srFile,String fileName) throws Exception {
 		FileReader FileStream;
 		BufferedReader BufferedStream = null;
 		try {
 
 			FileStream = new FileReader(srFile);
-
+			
 			BufferedStream = new BufferedReader(FileStream);
 			MeasureFileDataBase fileData = new MeasureFileDataBase();
+			fileData.setFileName(fileName);
 			String data;
 
 			do {
@@ -126,6 +126,8 @@ public class MeasureFileReader extends Thread {
 			logger.error("copyfile error:" + ToolUtility.StackTrace2String(e));
 		}
 	}
+	
+	
 
 	public static List<MeasureFileDataBase> GetAllFiles(String EqpId, String SubEqpId, String Recipe, String PreEqpId,
 			String PreSubEqpId, String PreRecipe) {

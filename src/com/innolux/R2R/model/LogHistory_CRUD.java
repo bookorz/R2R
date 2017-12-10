@@ -11,10 +11,11 @@ public class LogHistory_CRUD {
 	private static Logger logger = Logger.getLogger(FeedbackTime_CRUD.class);
 	private static GenericDao<LogHistory> LogHistory_Dao = new JdbcGenericDaoImpl<LogHistory>(GlobleVar.R2R_DB);
 	
-	public static LogHistory create(LogHistory loghisty){
-		LogHistory result = null;
+	public static boolean create(LogHistory loghisty){
+		boolean result = false;
 		try{
 			LogHistory_Dao.save(loghisty);
+			result = true;
 		}catch(Exception e){
 			logger.error(ToolUtility.StackTrace2String(e));
 		}

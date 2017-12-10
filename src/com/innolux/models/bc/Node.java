@@ -91,6 +91,20 @@ public class Node {
     }  
     
     /** 
+     * BC node no
+     */  
+    @Column("eqname")  
+    private String EQName; 
+	
+	public String getEQName() {  
+        return EQName;  
+    }  
+  
+    public void setEQName(String EQName) {  
+        this.EQName = EQName;  
+    }  
+    
+    /** 
      * BC node RecipeSplit
      */  
     @Column("recipesplit")  
