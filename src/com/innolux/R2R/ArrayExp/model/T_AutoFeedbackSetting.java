@@ -138,6 +138,9 @@ public class T_AutoFeedbackSetting{
 	}
 
 	public void setUUpperLimit(double uUpperLimit) {
+		if (uUpperLimit < this.LUpperLimit) {
+			Utility.checkErrorAndLog(null, "uUpperLimit cannot small than LUpperLimit", null);
+		}
 		UUpperLimit = uUpperLimit;
 	}
 
@@ -146,6 +149,9 @@ public class T_AutoFeedbackSetting{
 	}
 
 	public void setLUpperLimit(double lUpperLimit) {
+		if (lUpperLimit > this.UUpperLimit) {
+			Utility.checkErrorAndLog(null, "lUpperLimit cannot greater than UUpperLimit", null);
+		}
 		LUpperLimit = lUpperLimit;
 	}
 
@@ -154,6 +160,9 @@ public class T_AutoFeedbackSetting{
 	}
 
 	public void setULowerLimit(double uLowerLimit) {
+		if (uLowerLimit < this.LLowerLimit) {
+			Utility.checkErrorAndLog(null, "uLowerLimit cannot smaller than LLowerLimit", null);
+		}
 		ULowerLimit = uLowerLimit;
 	}
 
@@ -162,6 +171,9 @@ public class T_AutoFeedbackSetting{
 	}
 
 	public void setLLowerLimit(double lLowerLimit) {
+		if (lLowerLimit > this.ULowerLimit) {
+			Utility.checkErrorAndLog(null, "lLowerLimit cannot greater than ULowerLimit", null);
+		}
 		LLowerLimit = lLowerLimit;
 	}
 

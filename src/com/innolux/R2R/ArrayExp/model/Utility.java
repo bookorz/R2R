@@ -6,11 +6,14 @@ import com.innolux.R2R.model.LogHistory;
 import com.innolux.R2R.model.LogHistory_CRUD;
 
 public class Utility {
+	public static final boolean DEBUG = true;
 	private static Logger logger = Logger.getLogger(Utility.class);
 	public static void checkErrorAndLog(Object checkValue, String errStr, Object errorValue){
-		if(checkValue.equals(errorValue)){
+		if (checkValue == null) {
 			logger.error(errStr);
-
+			saveToLogHistoryDB(GlobleVar.ErrorType, errStr);
+		}else if(checkValue.equals(errorValue)){
+			logger.error(errStr);
 			saveToLogHistoryDB(GlobleVar.ErrorType, errStr);
 		}
 		return;
