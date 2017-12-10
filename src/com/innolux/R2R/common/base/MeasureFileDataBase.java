@@ -7,11 +7,57 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import com.innolux.R2R.common.ToolUtility;
+import com.innolux.R2R.model.MeasureFileData;
+import com.innolux.R2R.model.MeasureFileData_CRUD;
 
 public class MeasureFileDataBase {
 	private Logger logger = Logger.getLogger(this.getClass());
 	private Hashtable<String, Hashtable<Long,String>> data = new Hashtable<String, Hashtable<Long,String>>();
 	private String currentHeader = "";
+	private String FileName = "";
+	
+	
+	public String getFileName() {
+		return FileName;
+	}
+
+	public void setFileName(String fileName) {
+		FileName = fileName;
+	}
+
+	public boolean StoreFile(String EqpId, String SubEqpId, String Recipe, String PreEqpId,
+			String PreSubEqpId, String PreRecipe){
+		boolean result = false;
+		try {
+			for(String eachheader:data.keySet()){
+
+				Hashtable<Long,String> sectionData = data.get(eachheader);
+				
+				for(long index:sectionData.keySet()){
+					String eachRow = sectionData.get(index);
+					MeasureFileData RowData = new MeasureFileData();
+					RowData.setEqpId(PreSubEqpId);
+					RowData.setSubEqpId(SubEqpId);
+					RowData.setRecipe(Recipe);
+					RowData.setPreEqpId(PreEqpId);
+					RowData.setPreSubEqpId(PreSubEqpId);
+					RowData.setPreEqpRecipe(PreRecipe);
+					RowData.setFileName(this.getFileName());					
+					RowData.setHeaderName(eachheader);					
+					RowData.setRowData(eachRow);
+					RowData.setRowIndex(index);					
+					
+					MeasureFileData_CRUD.create(RowData);
+				}
+				
+			}
+
+			result = true;
+		} catch (Exception e) {
+			logger.error(ToolUtility.StackTrace2String(e));
+		}
+		return result;
+	}
 
 	public void Store(String headerName,long index, String raw) {
 		try {

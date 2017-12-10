@@ -2,6 +2,7 @@ package com.innolux.R2R.model;
 
 import com.innolux.annotation.Column;
 import com.innolux.annotation.Entity;
+import com.innolux.services.ObjectAnalyzer;
 
 @Entity("MeasureFileData") // 表名
 public class MeasureFileData {
@@ -90,20 +91,6 @@ public class MeasureFileData {
     }  
     
     /** 
-     * GlassID
-     */  
-    @Column("GlassID")  
-    private String GlassID; 
-	
-	public String getGlassID() {  
-        return GlassID;  
-    }  
-  
-    public void setGlassID(String GlassID) {  
-        this.GlassID = GlassID;  
-    }  
-    
-    /** 
      * FileName
      */  
     @Column("FileName")  
@@ -158,16 +145,8 @@ public class MeasureFileData {
     public void setRowData(String RowData) {  
         this.RowData = RowData;  
     }  
-    @Override  
-    public String toString() {  
-        return 
-        		" EqpId: " + EqpId+
-        		" Recipe: " + Recipe+
-        		" PreEqpId: " + PreEqpId+
-        		" PreEqpRecipe: " + PreEqpRecipe+
-        		" FileName: " + FileName+
-        		" HeaderName: " + HeaderName+
-        		" RowIndex: " + RowIndex+
-        		" RowData: " + RowData;   		
-    } 
+    @Override
+	public String toString() {
+		return ObjectAnalyzer.toString(this);
+	}
 }
