@@ -1,11 +1,13 @@
 package com.innolux.R2R.ArrayExp.model;
 
+import com.innolux.R2R.common.GlobleVar;
 import com.innolux.annotation.Column;
 import com.innolux.annotation.Entity;
 import com.innolux.annotation.Id;
+import com.innolux.services.ObjectAnalyzer;
 
 //p28
-@Entity("Auto_Feedback_Setting") // table name
+@Entity("ArrayExp_Auto_Feedback_Setting") // table name
 public class T_AutoFeedbackSetting{
 	@Id("Primarykey")
 	private String Primarykey;
@@ -28,8 +30,8 @@ public class T_AutoFeedbackSetting{
 	@Column("Exp_Rcp_Name")
 	private String ExpRcpName;
 	
-	@Column("Mea_Rcp")
-	private String MeaRcp;
+	@Column("Mea_Rcp_Name")
+	private String MeaRcpName;
 
 	@Column("Feedback_Mode")
 	private String FeedbackMode;
@@ -51,7 +53,10 @@ public class T_AutoFeedbackSetting{
 
 	@Column("Sigma")
 	private double Sigma;
-
+	
+	@Column("Active_Rule")
+	private String activeRule;
+	
 	@Column("Population_Size")
 	private int PopulationSize;
 
@@ -117,12 +122,22 @@ public class T_AutoFeedbackSetting{
 		ExpRcpName = expRcpName;
 	}
 
-	public String getMeaRcp() {
-		return MeaRcp;
+	
+
+	public String getMeaRcpName() {
+		return MeaRcpName;
 	}
 
-	public void setMeaRcp(String meaRcp) {
-		MeaRcp = meaRcp;
+	public void setMeaRcpName(String meaRcpName) {
+		MeaRcpName = meaRcpName;
+	}
+
+	public long getExpireTime() {
+		return ExpireTime;
+	}
+
+	public void setExpireTime(long expireTime) {
+		ExpireTime = expireTime;
 	}
 
 	public String getFeedbackMode() {
@@ -139,7 +154,7 @@ public class T_AutoFeedbackSetting{
 
 	public void setUUpperLimit(double uUpperLimit) {
 		if (uUpperLimit < this.LUpperLimit) {
-			Utility.checkErrorAndLog(null, "uUpperLimit cannot small than LUpperLimit", null);
+			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "uUpperLimit cannot small than LUpperLimit");
 		}
 		UUpperLimit = uUpperLimit;
 	}
@@ -150,7 +165,7 @@ public class T_AutoFeedbackSetting{
 
 	public void setLUpperLimit(double lUpperLimit) {
 		if (lUpperLimit > this.UUpperLimit) {
-			Utility.checkErrorAndLog(null, "lUpperLimit cannot greater than UUpperLimit", null);
+			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "lUpperLimit cannot greater than UUpperLimit");
 		}
 		LUpperLimit = lUpperLimit;
 	}
@@ -161,7 +176,7 @@ public class T_AutoFeedbackSetting{
 
 	public void setULowerLimit(double uLowerLimit) {
 		if (uLowerLimit < this.LLowerLimit) {
-			Utility.checkErrorAndLog(null, "uLowerLimit cannot smaller than LLowerLimit", null);
+			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "uLowerLimit cannot smaller than LLowerLimit");
 		}
 		ULowerLimit = uLowerLimit;
 	}
@@ -172,7 +187,7 @@ public class T_AutoFeedbackSetting{
 
 	public void setLLowerLimit(double lLowerLimit) {
 		if (lLowerLimit > this.ULowerLimit) {
-			Utility.checkErrorAndLog(null, "lLowerLimit cannot greater than ULowerLimit", null);
+			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "lLowerLimit cannot greater than ULowerLimit");
 		}
 		LLowerLimit = lLowerLimit;
 	}
@@ -191,6 +206,14 @@ public class T_AutoFeedbackSetting{
 
 	public void setSigma(double sigma) {
 		Sigma = sigma;
+	}
+
+	public String getActiveRule() {
+		return activeRule;
+	}
+
+	public void setActiveRule(String activeRule) {
+		this.activeRule = activeRule;
 	}
 
 	public int getPopulationSize() {
@@ -219,24 +242,7 @@ public class T_AutoFeedbackSetting{
 
 	@Override 
 	public String toString() {
-		return " Primarykey " + Primarykey +
-			" ActiveFlag " + ActiveFlag +
-			" EqpID " + EqpID +
-			" ExpStepId " + ExpStepId +
-			" MeaStepId " + MeaStepId +
-			" ExpRcpId " + ExpRcpId +
-			" ExpRcpName " + ExpRcpName +
-			" MeaRcp " + MeaRcp +
-			" FeedbackMode " + FeedbackMode +
-			" UUpperLimit " + UUpperLimit +
-			" LUpperLimit " + LUpperLimit +
-			" ULowerLimit " + ULowerLimit +
-			" LLowerLimit " + LLowerLimit +
-			" Ratio " + Ratio +
-			" Sigma " + Sigma +
-			" PopulationSize " + PopulationSize +
-			" SampleSize " + SampleSize +
-			" ExpireTime " + ExpireTime;
+		return ObjectAnalyzer.toString(this);
 	}
 	
 }

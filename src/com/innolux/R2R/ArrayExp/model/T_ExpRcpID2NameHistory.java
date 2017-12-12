@@ -4,7 +4,7 @@ import com.innolux.annotation.Column;
 import com.innolux.annotation.Entity;
 
 //P37
-@Entity("Exp_RcpID_2_Name_History") // table name
+@Entity("ArrayExp_Exp_RcpID_2_Name_History") // table name
 public class T_ExpRcpID2NameHistory {
 	@Column("Product")
 	private String Product;

@@ -29,7 +29,6 @@ public class MeasureFileDataBase {
 
 	public boolean StoreFile(String EqpId, String SubEqpId, String Recipe, String PreEqpId,
 			String PreSubEqpId, String PreRecipe){
-		boolean result = false;
 		try {
 			for(String eachheader:data.keySet()){
 
@@ -54,11 +53,11 @@ public class MeasureFileDataBase {
 				
 			}
 
-			result = true;
+			return true;
 		} catch (Exception e) {
 			logger.error(ToolUtility.StackTrace2String(e));
+			return false;
 		}
-		return result;
 	}
 
 	public void Store(String headerName,long index, String raw) {
@@ -197,11 +196,11 @@ public class MeasureFileDataBase {
 		List<String> correspondList = this.FetchList(Session, correspondCol);
 		
 		if(key1List == null || correspondList == null){
-		logger.debug("ArrayExp getCsvValByRowCol: " + key1Col + " List = null || " + correspondCol + " List = null");
-		return "";
+			logger.debug("ArrayExp getCsvValByRowCol: " + key1Col + " List = null || " + correspondCol + " List = null");
+			return "";
 		}else if(key1List.size() == 0 || correspondList.size() == 0){
-		logger.debug("ArrayExp getCsvValByRowCol: " + key1Col + " size = 0 || " + correspondCol + " size = 0");
-		return "";
+			logger.debug("ArrayExp getCsvValByRowCol: " + key1Col + " size = 0 || " + correspondCol + " size = 0");
+			return "";
 		}
 		
 		int keyInd = key1List.indexOf(key1Str);
@@ -249,7 +248,7 @@ public class MeasureFileDataBase {
 			logger.debug("ArrayExp getCsvValByRowCol: " + key1Col + " size = 0");
 			return -1;
 		}
-		Iterator iter = key1List.iterator();
+		Iterator<String> iter = key1List.iterator();
 		while(iter.hasNext()) {
 			String element = (String)iter.next();
 			if(!element.equals("") && !element.equals("0")) {

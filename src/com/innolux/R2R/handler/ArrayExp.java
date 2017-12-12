@@ -1,23 +1,15 @@
 package com.innolux.R2R.handler;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import java.util.InputMismatchException;
 
 import org.apache.log4j.Logger;
-
 import com.innolux.R2R.ArrayExp.model.ExpMeasGlass;
+import com.innolux.R2R.ArrayExp.model.T_ArrayExpCurrentState;
+import com.innolux.R2R.ArrayExp.model.T_ArrayExpCurrentState_CRUD;
 import com.innolux.R2R.ArrayExp.model.T_AutoFeedbackSetting;
 import com.innolux.R2R.ArrayExp.model.T_AutoFeedbackSetting_CRUD;
-import com.innolux.R2R.ArrayExp.model.T_EqGroup2EqID;
-import com.innolux.R2R.ArrayExp.model.T_EqGroup2EqID_CRUD;
-import com.innolux.R2R.ArrayExp.model.T_ExpRcpID2Name;
-import com.innolux.R2R.ArrayExp.model.T_ExpRcpID2Name_CRUD;
 import com.innolux.R2R.ArrayExp.model.Utility;
-import com.innolux.R2R.ArrayExp.model.Vector2D;
-import com.innolux.R2R.common.ToolUtility;
+import com.innolux.R2R.common.GlobleVar;
 import com.innolux.R2R.common.base.MeasureFileDataBase;
 import com.innolux.R2R.interfaces.IFileData;
 import com.innolux.services.MeasureFileReader;
@@ -33,36 +25,71 @@ public class ArrayExp implements IFileData{
 	
 	public ArrayExp(String csvUpperFilePath, String ngFilePath) {
 		MeasureFileReader fileService = new MeasureFileReader();
-		 fileService.setFileHandler(this, csvUpperFilePath, ngFilePath);
+		fileService.setFileHandler(this, csvUpperFilePath, ngFilePath);
 		fileService.start();
 
 	}
 
 	@Override
-	public void onFileData(MeasureFileDataBase csv) {
+	public void onFileData (MeasureFileDataBase csv) {
 		// when receive a csv 
 		ExpMeasGlass emGlass = ExpMeasGlass.csv2ExpMeasGlass(csv);
-
-		//boolean isDataError = checkIsDataVaild(emGlass);
-//		if(isDataError == true) {
-//			logger.debug("ArrayExp onFileData: glass data not match");
-//			return;
-//		}
-//		logger.debug("ArrayExp onFileData: glass data matched");
-//		
-//		boolean isFeedbackData = checkIsFeedbackData(emGlass);
-//		if(isFeedbackData == false) {
-//			logger.debug("ArrayExp onFileData: isFeedbackData = false");
-//			return;
-//		}
-//		logger.debug("ArrayExp onFileData: isFeedbackData = true");
-//
-//		boolean isStartFeedback = checkStartFeedback(emGlass);
-//		if(isStartFeedback == false) {
-//			logger.debug("ArrayExp onFileData: isStartFeedback = false");
-//			return;
-//		}
-//		logger.debug("ArrayExp onFileData: isStartFeedback = true");
+		if (emGlass == null) {
+			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "onFileData Error: emGlass = null");
+			return;
+		}
+		Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "onFileData: csv2ExpMeasGlass success");
+		
+		boolean isDataVaild = emGlass.checkIsDataVaild(); //#TODO
+		if(!isDataVaild) {
+			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "ArrayExp onFileData Error: glass data not vaild for feedback");
+			return;
+		}
+		Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "onFileData: glass data is vaild");
+		
+		// add glass to target Glass set 
+		boolean status = csv.StoreFile(emGlass.getMeasEqId(), emGlass.getMeasSubEqId(), emGlass.getMeasRcpID(), 
+						emGlass.getExpID(), "", emGlass.getExpRcpID());
+		if (!status) {
+			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "ArrayExp onFileData Error: cannot add glass to target Glass set");
+			return;
+		}
+		Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "onFileData: add glass to target Glass set success");
+		
+		// count + 1
+		T_ArrayExpCurrentState arrayExpCurrentState = T_ArrayExpCurrentState_CRUD.read(emGlass.getProductName(), emGlass.getExpID(), emGlass.getExpRcpID(), emGlass.getMeasRcpID(), emGlass.getMeasStepID(), emGlass.getAdcOrFdc());
+		if (arrayExpCurrentState == null) {
+			// create
+			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "ArrayExp onFileData fail: cannot read T_ArrayExpCurrentState");
+			T_ArrayExpCurrentState newState = new T_ArrayExpCurrentState(emGlass);
+			boolean saveState = T_ArrayExpCurrentState_CRUD.create(newState);
+			if (saveState) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "ArrayExp onFileData: create T_ArrayExpCurrentState success");
+			}else {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "ArrayExp onFileData Error: cannot create T_ArrayExpCurrentState");
+			}
+			return;
+		}
+		// update
+		Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "ArrayExp onFileData: read T_ArrayExpCurrentState success");
+		arrayExpCurrentState.setCount (arrayExpCurrentState.getCount() + 1); 
+		boolean updateState = T_ArrayExpCurrentState_CRUD.update(arrayExpCurrentState);
+		if (updateState) {
+			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "ArrayExp onFileData: update T_ArrayExpCurrentState success");
+		}else {
+			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "ArrayExp onFileData Error: cannot update T_ArrayExpCurrentState");
+		}
+		
+		// checkStartFeedback
+		int startState = checkStartFeedback(emGlass);
+		if (startState == -1) {
+			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "ArrayExp onFileData Error: checkStartFeedback Error");
+			return;
+		}else if (startState == 0) {
+			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "ArrayExp onFileData: dont need to start Feedback");
+			return;
+		}
+		Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "ArrayExp onFileData: need to start Feedback");
 //
 //		feedbackFile = null;
 //		if(emGlass.expSupplier.equal("Nikon")){
@@ -75,6 +102,35 @@ public class ArrayExp implements IFileData{
 		// save feedback history to DB
 	}	
 
-	
+	public int checkStartFeedback(ExpMeasGlass aGlass) {
+		// get number of glass in target glass set
+		T_ArrayExpCurrentState aState = T_ArrayExpCurrentState_CRUD.read(aGlass.getProductName(), aGlass.getExpID(), aGlass.getExpRcpID(), aGlass.getMeasRcpID(), aGlass.getMeasStepID(), aGlass.getAdcOrFdc());
+		if (aState == null) {
+			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "checkStartFeedback Error: cannot read T_ArrayExpCurrentState");
+			return -1;
+		}
+		Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "checkStartFeedback: read T_ArrayExpCurrentState success");
+		aState.getCount();
+		
+		// get setting
+		T_AutoFeedbackSetting aSetting = T_AutoFeedbackSetting_CRUD.read(aGlass.getProductName(), aGlass.getExpID(), aGlass.getExpRcpID(), aGlass.getMeasRcpID(), aGlass.getMeasStepID(), aGlass.getAdcOrFdc());
+		if (aSetting == null) {
+			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "checkStartFeedback Error: cannot read T_AutoFeedbackSetting");
+			return -1;
+		}
+		Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "checkStartFeedback: read T_AutoFeedbackSetting success");
+		aSetting.getPopulationSize();
+		
+		if (aState.getCount() < aSetting.getPopulationSize()) {
+			return 0;
+		}
+		int populationSize = aState.getCount();
+		int sampleSize = aSetting.getSampleSize();
+		boolean isMatch = checkGlassMatchFeedbackCondition(aGlass.getMeasPointList(), aSetting);
+		
+		MeasureFileDataBase
+		//#TODO
+		return 1;
+	}
 	
 }

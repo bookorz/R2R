@@ -25,7 +25,7 @@ public class MeasureFileData_CRUD {
 		return result;
 	}
 	
-	public static List<MeasureFileData> read(String EqpId,String SubEqpId, String Recipe,String PreEqpId,String PreSubEqpId, String PreRecipe){
+	public static List<MeasureFileData> read(String EqpId,String SubEqpId, String Recipe,String PreEqpId, String PreSubEqpId, String PreRecipe){
 		List<MeasureFileData> result = null;
 		try{
 			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();

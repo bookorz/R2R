@@ -5,7 +5,7 @@ import com.innolux.annotation.Entity;
 import com.innolux.annotation.Id;
 import com.innolux.services.ObjectAnalyzer;
 
-@Entity("Last_Exp_Time") // 表名
+@Entity("ArrayExp_Last_Exp_Time") // 表名
 public class T_LastExpTime {
 	@Id("PrimaryKey")
 	private String PrimaryKey;
@@ -17,7 +17,7 @@ public class T_LastExpTime {
 	private String RcpId;
 	
 	@Column("Exp_Time")
-	private String ExpTime;
+	private long ExpTime;
 
 	public String getPrimaryKey() {
 		return PrimaryKey;
@@ -43,11 +43,11 @@ public class T_LastExpTime {
 		RcpId = rcpId;
 	}
 
-	public String getExpTime() {
+	public long getExpTime() {
 		return ExpTime;
 	}
 
-	public void setExpTime(String expTime) {
+	public void setExpTime(long expTime) {
 		ExpTime = expTime;
 	}
 	

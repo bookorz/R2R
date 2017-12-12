@@ -4,7 +4,7 @@ import com.innolux.annotation.Column;
 import com.innolux.annotation.Entity;
 
 //p35
-@Entity("Feedback_History") // table name
+@Entity("ArrayExp_Feedback_History") // table name
 public class T_FeedbackHistory {
 	@Column("Product")
 	private String Product;

@@ -15,7 +15,7 @@ public class T_FeedbackHistory_CRUD {
 		try{
 			T_FeedbackHistory_DAO.save(feedbackHistory);
 		}catch(Exception e){
-			logger.error(ToolUtility.StackTrace2String(e));
+			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, ToolUtility.StackTrace2String(e));
 			return false;
 		}
 		return true;

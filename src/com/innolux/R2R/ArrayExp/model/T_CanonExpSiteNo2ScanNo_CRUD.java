@@ -41,7 +41,8 @@ public class T_CanonExpSiteNo2ScanNo_CRUD {
 				return tmp.get(0);
 			}
 		}catch(Exception e){
-			logger.error(ToolUtility.StackTrace2String(e));
+			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, ToolUtility.StackTrace2String(e));
+			return null;
 		}
 		return null;
 	}

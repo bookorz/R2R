@@ -20,7 +20,7 @@ public class T_LastExpTime_CRUD {
 		try{
 			T_LastExpTime_DAO.save(expTimeHisty);
 		}catch(Exception e){
-			logger.error(ToolUtility.StackTrace2String(e));
+			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, ToolUtility.StackTrace2String(e));
 			return false;
 		}
 		return true;
@@ -42,18 +42,19 @@ public class T_LastExpTime_CRUD {
 				return tmp.get(0);
 			}
 		}catch(Exception e){
-			logger.error(ToolUtility.StackTrace2String(e));
+			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, ToolUtility.StackTrace2String(e));
+			return null;
 		}
 		return null;
 	}
 	
-	public static T_LastExpTime update(T_LastExpTime lastExpTime){
-		T_LastExpTime result = null;
+	public static boolean update(T_LastExpTime lastExpTime){
 		try{
 			T_LastExpTime_DAO.update(lastExpTime);
 		}catch(Exception e){
-			logger.error(ToolUtility.StackTrace2String(e));
+			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, ToolUtility.StackTrace2String(e));
+			return false;
 		}
-		return result;
+		return true;
 	}
 }
