@@ -47,10 +47,11 @@ public class FeedbackTime_CRUD {
 		return result;
 	}
 	
-	public static FeedbackTime update(FeedbackTime ft){
-		FeedbackTime result = null;
+	public static boolean update(FeedbackTime ft){
+		boolean result = false;
 		try{
 			FeedbackTime_Dao.update(ft);
+			result = true;
 		}catch(Exception e){
 			logger.error(ToolUtility.StackTrace2String(e));
 		}
