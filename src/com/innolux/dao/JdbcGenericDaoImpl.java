@@ -55,7 +55,7 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		for (Field field : fields) {
 			PropertyDescriptor pd = new PropertyDescriptor(field.getName(), t.getClass());
 			if (field.isAnnotationPresent(Id.class)) {
-				if (!field.getAnnotation(Id.class).value().equals("id")) {
+				if (!field.getAnnotation(Id.class).value().equals("PrimaryKey")) {
 					fieldNames.append(field.getAnnotation(Id.class).value()).append(",");
 					fieldValues.add(pd.getReadMethod().invoke(t));
 					placeholders.append("?").append(",");

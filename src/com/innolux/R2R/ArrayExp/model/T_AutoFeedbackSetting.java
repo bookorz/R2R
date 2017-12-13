@@ -15,8 +15,8 @@ public class T_AutoFeedbackSetting{
 	@Column("Active_Flag")
 	private String ActiveFlag;
 
-	@Column("Eqp_ID")
-	private String EqpID;
+	@Column("Exp_ID")
+	private String ExpId;
 
 	@Column("Exp_Step_Id")
 	private String ExpStepId;
@@ -30,23 +30,38 @@ public class T_AutoFeedbackSetting{
 	@Column("Exp_Rcp_Name")
 	private String ExpRcpName;
 	
-	@Column("Mea_Rcp_Name")
-	private String MeaRcpName;
+	@Column("Mea_Rcp_Id")
+	private String MeaRcpId;
 
+	@Column("Adc_Or_Fdc")
+	private String adcOrFdc;
+	
 	@Column("Feedback_Mode")
 	private String FeedbackMode;
 
-	@Column("U_Upper_Limit")
-	private double UUpperLimit;
+	@Column("OL_U_Upper_Limit")
+	private double Ol_U_UpperLimit;
 
-	@Column("L_Upper_Limit")
-	private double LUpperLimit;
+	@Column("OL_L_Upper_Limit")
+	private double Ol_L_UpperLimit;
 
-	@Column("U_Lower_Limit")
-	private double ULowerLimit;
+	@Column("OL_U_Lower_Limit")
+	private double Ol_U_LowerLimit;
 
-	@Column("L_Lower_Limit")
-	private double LLowerLimit;
+	@Column("OL_L_Lower_Limit")
+	private double Ol_L_LowerLimit;
+
+	@Column("DOL_U_Upper_Limit")
+	private double DOl_U_UpperLimit;
+
+	@Column("DOL_L_Upper_Limit")
+	private double DOl_L_UpperLimit;
+
+	@Column("DOL_U_Lower_Limit")
+	private double DOl_U_LowerLimit;
+
+	@Column("DOL_L_Lower_Limit")
+	private double DOl_L_LowerLimit;
 
 	@Column("Ratio")
 	private double Ratio;
@@ -82,12 +97,12 @@ public class T_AutoFeedbackSetting{
 		ActiveFlag = activeFlag;
 	}
 
-	public String getEqpID() {
-		return EqpID;
+	public String getExpId() {
+		return ExpId;
 	}
 
-	public void setEqpID(String eqpID) {
-		EqpID = eqpID;
+	public void setExpId(String expId) {
+		ExpId = expId;
 	}
 
 	public String getExpStepId() {
@@ -122,14 +137,12 @@ public class T_AutoFeedbackSetting{
 		ExpRcpName = expRcpName;
 	}
 
-	
-
-	public String getMeaRcpName() {
-		return MeaRcpName;
+	public String getMeaRcpId() {
+		return MeaRcpId;
 	}
 
-	public void setMeaRcpName(String meaRcpName) {
-		MeaRcpName = meaRcpName;
+	public void setMeaRcpId(String meaRcpId) {
+		MeaRcpId = meaRcpId;
 	}
 
 	public long getExpireTime() {
@@ -138,6 +151,14 @@ public class T_AutoFeedbackSetting{
 
 	public void setExpireTime(long expireTime) {
 		ExpireTime = expireTime;
+	}
+	
+	public String getAdcOrFdc() {
+		return adcOrFdc;
+	}
+
+	public void setAdcOrFdc(String adcOrFdc) {
+		this.adcOrFdc = adcOrFdc;
 	}
 
 	public String getFeedbackMode() {
@@ -148,48 +169,68 @@ public class T_AutoFeedbackSetting{
 		FeedbackMode = feedbackMode;
 	}
 
-	public double getUUpperLimit() {
-		return UUpperLimit;
+	public double getOl_U_UpperLimit() {
+		return Ol_U_UpperLimit;
 	}
 
-	public void setUUpperLimit(double uUpperLimit) {
-		if (uUpperLimit < this.LUpperLimit) {
-			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "uUpperLimit cannot small than LUpperLimit");
-		}
-		UUpperLimit = uUpperLimit;
+	public void setOl_U_UpperLimit(double ol_U_UpperLimit) {
+		Ol_U_UpperLimit = ol_U_UpperLimit;
 	}
 
-	public double getLUpperLimit() {
-		return LUpperLimit;
+	public double getOl_L_UpperLimit() {
+		return Ol_L_UpperLimit;
 	}
 
-	public void setLUpperLimit(double lUpperLimit) {
-		if (lUpperLimit > this.UUpperLimit) {
-			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "lUpperLimit cannot greater than UUpperLimit");
-		}
-		LUpperLimit = lUpperLimit;
+	public void setOl_L_UpperLimit(double ol_L_UpperLimit) {
+		Ol_L_UpperLimit = ol_L_UpperLimit;
 	}
 
-	public double getULowerLimit() {
-		return ULowerLimit;
+	public double getOl_U_LowerLimit() {
+		return Ol_U_LowerLimit;
 	}
 
-	public void setULowerLimit(double uLowerLimit) {
-		if (uLowerLimit < this.LLowerLimit) {
-			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "uLowerLimit cannot smaller than LLowerLimit");
-		}
-		ULowerLimit = uLowerLimit;
+	public void setOl_U_LowerLimit(double ol_U_LowerLimit) {
+		Ol_U_LowerLimit = ol_U_LowerLimit;
 	}
 
-	public double getLLowerLimit() {
-		return LLowerLimit;
+	public double getOl_L_LowerLimit() {
+		return Ol_L_LowerLimit;
 	}
 
-	public void setLLowerLimit(double lLowerLimit) {
-		if (lLowerLimit > this.ULowerLimit) {
-			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "lLowerLimit cannot greater than ULowerLimit");
-		}
-		LLowerLimit = lLowerLimit;
+	public void setOl_L_LowerLimit(double ol_L_LowerLimit) {
+		Ol_L_LowerLimit = ol_L_LowerLimit;
+	}
+
+	public double getDOl_U_UpperLimit() {
+		return DOl_U_UpperLimit;
+	}
+
+	public void setDOl_U_UpperLimit(double dOl_U_UpperLimit) {
+		DOl_U_UpperLimit = dOl_U_UpperLimit;
+	}
+
+	public double getDOl_L_UpperLimit() {
+		return DOl_L_UpperLimit;
+	}
+
+	public void setDOl_L_UpperLimit(double dOl_L_UpperLimit) {
+		DOl_L_UpperLimit = dOl_L_UpperLimit;
+	}
+
+	public double getDOl_U_LowerLimit() {
+		return DOl_U_LowerLimit;
+	}
+
+	public void setDOl_U_LowerLimit(double dOl_U_LowerLimit) {
+		DOl_U_LowerLimit = dOl_U_LowerLimit;
+	}
+
+	public double getDOl_L_LowerLimit() {
+		return DOl_L_LowerLimit;
+	}
+
+	public void setDOl_L_LowerLimit(double dOl_L_LowerLimit) {
+		DOl_L_LowerLimit = dOl_L_LowerLimit;
 	}
 
 	public double getRatio() {

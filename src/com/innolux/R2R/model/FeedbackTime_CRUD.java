@@ -1,10 +1,13 @@
 package com.innolux.R2R.model;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import com.innolux.R2R.ArrayExp.model.T_LastExpTime;
+import com.innolux.R2R.ArrayExp.model.Utility;
 import com.innolux.R2R.common.GlobleVar;
 import com.innolux.R2R.common.ToolUtility;
 import com.innolux.dao.GenericDao;
@@ -39,8 +42,16 @@ public class FeedbackTime_CRUD {
 			if(!Recipe.equals("")){
 				sqlWhereMap.put("Recipe", Recipe);
 			}
-			FeedbackTime_Dao.findAllByConditions(sqlWhereMap, FeedbackTime.class);
-			
+			List<FeedbackTime> tmp = FeedbackTime_Dao.findAllByConditions(sqlWhereMap, FeedbackTime.class);
+			if (tmp == null) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "FeedbackTime read Error: tmp = null");
+				return null;
+			}else if (tmp.size() == 0) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogDebugType, "FeedbackTime read: tmp.size = 0");
+				return null;
+			}if (tmp.size() != 0) {
+				return tmp.get(0);
+			}
 		}catch(Exception e){
 			logger.error(ToolUtility.StackTrace2String(e));
 		}

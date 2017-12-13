@@ -4,7 +4,7 @@ import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
+import java.util.ArrayList;import javax.lang.model.type.NullType;
 
 public class ObjectAnalyzer {
 	/**
@@ -44,6 +44,7 @@ public class ObjectAnalyzer {
 				r += f.getName() + "=";
 				try {
 					Object val = f.get(obj);
+					if (val == null) continue;
 					r += val.toString();
 				} catch (Exception e) {
 					e.printStackTrace();

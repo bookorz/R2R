@@ -29,7 +29,7 @@ public class T_ArrayExpCurrentState {
 	private String MeaRcpID;
 
 	@Column("Adc_Or_Fdc")
-	private int adcOrFdc;
+	private String adcOrFdc;
 	
 	@Column("Count")
 	private int Count;
@@ -101,11 +101,11 @@ public class T_ArrayExpCurrentState {
 		MeaRcpID = meaRcpID;
 	}
 
-	public int getAdcOrFdc() {
+	public String getAdcOrFdc() {
 		return adcOrFdc;
 	}
 
-	public void setAdcOrFdc(int adcOrFdc) {
+	public void setAdcOrFdc(String adcOrFdc) {
 		this.adcOrFdc = adcOrFdc;
 	}
 

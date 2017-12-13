@@ -7,8 +7,9 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.rmi.CORBA.Util;
+
 import org.apache.log4j.Logger;
-import org.w3c.dom.css.ElementCSSInlineStyle;
 
 import com.innolux.R2R.common.GlobleVar;
 import com.innolux.R2R.common.ToolUtility;
@@ -26,7 +27,7 @@ public class ExpMeasGlass {
 	String expRcpID; // mandatory
 	String measStepID; // mandatory
 	String measRcpID; // mandatory
-	int adcOrFdc; // mandatory
+	String adcOrFdc; // mandatory
 
 	String glassID;
 	
@@ -36,14 +37,8 @@ public class ExpMeasGlass {
 	
 	String measEqId;
 	String measSubEqId;
-
-
-	public static final int OL = 1;
-	public static final int DOL = 2; 
-	public static final int ADC = 1; 
-	public static final int FDC = 2; 
 	
-	int olOrDol;
+	String olOrDol;
 	
 	Vector2D minOL;
 	Vector2D maxOL;
@@ -60,7 +55,6 @@ public class ExpMeasGlass {
 
 	public ExpMeasGlass(){
 		this.measPointList = new ArrayList<Vector2D>();
-		this.adcOrFdc = 0;
 	}
 
 	public String getGlassID() {
@@ -143,11 +137,11 @@ public class ExpMeasGlass {
 		this.measRcpID = measRcpID;
 	}
 
-	public int getOlOrDol() {
+	public String getOlOrDol() {
 		return olOrDol;
 	}
 
-	public void setOlOrDol(int olOrDol) {
+	public void setOlOrDol(String olOrDol) {
 		this.olOrDol = olOrDol;
 	}
 
@@ -167,11 +161,11 @@ public class ExpMeasGlass {
 		this.measSubEqId = measSubEqId;
 	}
 	
-	public int getAdcOrFdc() {
+	public String getAdcOrFdc() {
 		return this.adcOrFdc;
 	}
 
-	public void setAdcOrFdc(int adcOrFdc) {
+	public void setAdcOrFdc(String adcOrFdc) {
 		this.adcOrFdc = adcOrFdc;
 	}
 
@@ -228,12 +222,35 @@ public class ExpMeasGlass {
 	public static ExpMeasGlass csv2ExpMeasGlass(MeasureFileDataBase csv){
 		ExpMeasGlass aGlass = new ExpMeasGlass();
 		try {
-			aGlass.setGlassID(csv.FetchValue("GLASS_DATA", "Glass_ID"));
-			aGlass.setProductName(csv.FetchValue("GLASS_DATA", "Product"));
-			aGlass.setExpID(csv.FetchValue("PDS_GLASS_DATA", "PreEQ_ID_1"));
-			aGlass.setExpStepID(csv.FetchValue("PDS_GLASS_DATA", "PreStep_Seq_1"));
+			String str1 = csv.FetchValue("GLASS_DATA", "Glass_ID");
+			if (str1 == null || str1.equals("")) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "csv2ExpMeasGlass Error: FetchValue(GLASS_DATA, Glass_ID)");
+				return null;
+			}
+			aGlass.setGlassID(str1);
 			
-			int err;
+			str1 = csv.FetchValue("GLASS_DATA", "Product");
+			if (str1 == null || str1.equals("")) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "csv2ExpMeasGlass Error: FetchValue(GLASS_DATA, Product)");
+				return null;
+			}
+			aGlass.setProductName(str1);
+			
+			str1 = csv.FetchValue("PDS_GLASS_DATA", "PreEQ_ID_1");
+			if (str1 == null || str1.equals("")) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "csv2ExpMeasGlass Error: FetchValue(PDS_GLASS_DATA, PreEQ_ID_1)");
+				return null;
+			}
+			aGlass.setExpID(str1);
+			
+			
+			str1 = csv.FetchValue("PDS_GLASS_DATA", "PreStep_Seq_1");
+			if (str1 == null || str1.equals("")) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "csv2ExpMeasGlass Error: FetchValue(PDS_GLASS_DATA, PreStep_Seq_1)");
+				return null;
+			}
+			aGlass.setExpStepID(str1);
+			
 			T_EqGroup2EqID eqGroup2EqID;
 			if (Utility.DEBUG) {
 				eqGroup2EqID = new T_EqGroup2EqID();
@@ -248,10 +265,15 @@ public class ExpMeasGlass {
 			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "csv2ExpMeasGlass: read data in T_EqGroup2EqID successfully");
 			aGlass.setExpSupplier(eqGroup2EqID.getEqGroup()); // Nikon or Canon
 			
-			aGlass.setExpRcpID(csv.FetchValue("PDS_GLASS_DATA", "PreRecipe_ID_1"));
+			str1 = csv.FetchValue("PDS_GLASS_DATA", "PreRecipe_ID_1");
+			if (str1 == null || str1.equals("")) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "csv2ExpMeasGlass Error: FetchValue(PDS_GLASS_DATA, PreRecipe_ID_1)");
+				return null;
+			}
+			aGlass.setExpRcpID(str1);
 			
 			T_ExpRcpID2Name expRcpID2Name;
-			if(Utility.DEBUG) {
+			if (Utility.DEBUG) {
 				expRcpID2Name = new T_ExpRcpID2Name();
 				expRcpID2Name.setExpRcpName("ExpRecipeName");
 			}else {
@@ -265,10 +287,33 @@ public class ExpMeasGlass {
 			}
 			aGlass.setExpRcpName(expRcpID2Name.getExpRcpName());
 			
-			aGlass.setMeasStepID(csv.FetchValue("GLASS_DATA", "Step_Seq"));
-			aGlass.setMeasRcpID(csv.FetchValue("GLASS_DATA", "Recipe_ID"));
-			aGlass.setMeasEqId(csv.FetchValue("GLASS_DATA", "EQ_ID"));
-			aGlass.setMeasSubEqId(csv.FetchValue("GLASS_DATA", "SUBEQ_ID"));
+			str1 = csv.FetchValue("GLASS_DATA", "Step_Seq");
+			if (str1 == null || str1.equals("")) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "csv2ExpMeasGlass Error: FetchValue(GLASS_DATA, Step_Seq)");
+				return null;
+			}
+			aGlass.setMeasStepID(str1);
+			
+			str1 = csv.FetchValue("GLASS_DATA", "Recipe_ID");
+			if (str1 == null || str1.equals("")) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "csv2ExpMeasGlass Error: FetchValue(GLASS_DATA, Recipe_ID)");
+				return null;
+			}
+			aGlass.setMeasRcpID(str1);
+			
+			str1 = csv.FetchInfo("HEADER", "EQ_ID");
+			if (str1 == null || str1.equals("")) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "csv2ExpMeasGlass Error: FetchValue(GLASS_DATA, EQ_ID)");
+				return null;
+			}
+			aGlass.setMeasEqId(str1);
+			
+			str1 = csv.FetchInfo("HEADER", "SUBEQ_ID");
+			if (str1 == null || str1.equals("")) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "csv2ExpMeasGlass Error: FetchValue(GLASS_DATA, SUBEQ_ID)");
+				return null;
+			}
+			aGlass.setMeasSubEqId(str1);
 
 			Vector2D minOL = new Vector2D();
 			minOL =  ExpMeasGlass.getVectPointInGlass(csv, "Min", "OL");
@@ -276,7 +321,7 @@ public class ExpMeasGlass {
 				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "ExpMeasGlass.getVectPointInGlass Error minOL = null");
 				return null;
 			}
-			else Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "csv2ExpMeasGlass: get minOL info successfully");
+			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "csv2ExpMeasGlass: get minOL info successfully");
 			
 			Vector2D maxOL = new Vector2D();
 			maxOL =  ExpMeasGlass.getVectPointInGlass(csv, "Max", "OL");
@@ -284,27 +329,29 @@ public class ExpMeasGlass {
 				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "ExpMeasGlass.getVectPointInGlass Error maxOL = null");
 				return null;
 			}
-			else Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "csv2ExpMeasGlass: get maxOL info successfully");
+			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "csv2ExpMeasGlass: get maxOL info successfully");
 			
 			Vector2D minDOL = new Vector2D();
 			minDOL =  ExpMeasGlass.getVectPointInGlass(csv, "Min", "DOL");
 			if (minDOL == null) {
-				Utility.saveToLogHistoryDB(GlobleVar.LogDebugType, "ExpMeasGlass.getVectPointInGlass Error minDOL = null");
-			}else Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "csv2ExpMeasGlass: get minDOL info successfully");
+				Utility.saveToLogHistoryDB(GlobleVar.LogDebugType, "ExpMeasGlass.getVectPointInGlass fail: minDOL = null");
+			}
+			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "csv2ExpMeasGlass: get minDOL info successfully");
 			
 			Vector2D maxDOL = new Vector2D();
 			maxDOL =  ExpMeasGlass.getVectPointInGlass(csv, "Max", "DOL");
-			err = Utility.checkErrorAndLog(maxDOL, null, GlobleVar.LogDebugType, "ExpMeasGlass.getVectPointInGlass Error maxDOL = null");
-			if(err == 1) 
+			if (maxDOL == null)
+				Utility.saveToLogHistoryDB(GlobleVar.LogDebugType, "ExpMeasGlass.getVectPointInGlass fail: maxDOL = null");
+			else 
 				Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "csv2ExpMeasGlass: get maxDOL info successfully");
 			
-			
+			aGlass.setAdcOrFdc("");
 			if(aGlass.getExpSupplier().equals("Canon")) {
-				aGlass.setAdcOrFdc(ExpMeasGlass.ADC); // maybe future need to edit
+				aGlass.setAdcOrFdc("ADC"); // maybe future need to edit
 			}
 
-			int olOrDol = checkOlOrDol(aGlass, minOL, maxOL, minDOL, maxDOL);
-			if (olOrDol == -1) {
+			String olOrDol = checkOlOrDol(aGlass, minOL, maxOL, minDOL, maxDOL);
+			if (olOrDol.equals("")) {
 				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "checkOlOrDol Error: orOrDol = -1");
 				return null;
 			}
@@ -318,8 +365,8 @@ public class ExpMeasGlass {
 				autoFeedbackSetting =  T_AutoFeedbackSetting_CRUD.read(aGlass.getProductName(), 
 																		aGlass.getExpID(), 
 																		aGlass.getExpRcpID(), 
+																		aGlass.getMeasRcpID(),
 																		aGlass.getMeasStepID(), 
-																		aGlass.getMeasRcpID(), 
 																		aGlass.getAdcOrFdc());
 				if (autoFeedbackSetting == null) {
 					Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "cannot get data in T_AutoFeedbackSetting_CRUD");
@@ -386,50 +433,55 @@ public class ExpMeasGlass {
 		}
 	}
 	
-	private static int checkOlOrDol(ExpMeasGlass aGlass, Vector2D minOL, Vector2D maxOL, Vector2D minDOL, Vector2D maxDOL){
+	private static String checkOlOrDol(ExpMeasGlass aGlass, Vector2D minOL, Vector2D maxOL, Vector2D minDOL, Vector2D maxDOL){
 		// return the correct feedback type: OL or DOL
 		if (maxOL == null && minOL == null) {
-			Utility.checkErrorAndLog(-1, -1, GlobleVar.LogErrorType, "checkOlOrDol Error: maxOL = null or minOL = null");
-			return -1;
+			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "checkOlOrDol Error: maxOL = null or minOL = null");
+			return null;
 		}
 		
 		T_AutoFeedbackSetting autoFbkSeting;
 		if (Utility.DEBUG) {
 			autoFbkSeting = new T_AutoFeedbackSetting();
-			autoFbkSeting.setLUpperLimit(-999);
-			autoFbkSeting.setUUpperLimit(999);
-			autoFbkSeting.setLLowerLimit(-999);
-			autoFbkSeting.setULowerLimit(999);
+			autoFbkSeting.setOl_L_UpperLimit(-9999);;
+			autoFbkSeting.setOl_U_UpperLimit(9999);
+			autoFbkSeting.setOl_L_LowerLimit(-9999);
+			autoFbkSeting.setOl_U_LowerLimit(9999);
+			autoFbkSeting.setDOl_L_UpperLimit(-9999);;
+			autoFbkSeting.setDOl_U_UpperLimit(9999);
+			autoFbkSeting.setDOl_L_LowerLimit(-9999);
+			autoFbkSeting.setDOl_U_LowerLimit(9999);
 		}else {
 			autoFbkSeting = T_AutoFeedbackSetting_CRUD.read(aGlass.getProductName(), 
 															aGlass.getExpID(), 
 															aGlass.getExpRcpID(), 
-															aGlass.getMeasStepID(), 
 															aGlass.getMeasRcpID(), 
+															aGlass.getMeasStepID(), 
 															aGlass.getAdcOrFdc());
-			autoFbkSeting.setLUpperLimit(autoFbkSeting.getLUpperLimit());
-			autoFbkSeting.setUUpperLimit(autoFbkSeting.getUUpperLimit());
-			autoFbkSeting.setLLowerLimit(autoFbkSeting.getLLowerLimit());
-			autoFbkSeting.setULowerLimit(autoFbkSeting.getULowerLimit());
+			if (autoFbkSeting == null) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "checkOlOrDol Error: cannot read T_AutoFeedbackSetting");
+				return null;
+			}
 		}
 		if (maxDOL != null && minDOL != null) {
-			if(autoFbkSeting.getLUpperLimit() <= maxDOL.getxValue() && maxDOL.getxValue() <= autoFbkSeting.getUUpperLimit() &&
-					autoFbkSeting.getLLowerLimit() <= minDOL.getxValue() && minDOL.getxValue() <= autoFbkSeting.getULowerLimit() && 
-					autoFbkSeting.getLUpperLimit() <= maxDOL.getyValue() && maxDOL.getyValue() <= autoFbkSeting.getUUpperLimit() &&
-					autoFbkSeting.getLLowerLimit() <= minDOL.getyValue() && minDOL.getyValue() <= autoFbkSeting.getULowerLimit()){
+			if(autoFbkSeting.getDOl_L_UpperLimit() <= maxDOL.getxValue() && maxDOL.getxValue() <= autoFbkSeting.getDOl_U_UpperLimit() &&
+					autoFbkSeting.getDOl_L_LowerLimit() <= minDOL.getxValue() && minDOL.getxValue() <= autoFbkSeting.getDOl_U_LowerLimit() && 
+					autoFbkSeting.getDOl_L_UpperLimit() <= maxDOL.getyValue() && maxDOL.getyValue() <= autoFbkSeting.getDOl_U_UpperLimit() &&
+					autoFbkSeting.getDOl_L_LowerLimit() <= minDOL.getyValue() && minDOL.getyValue() <= autoFbkSeting.getDOl_U_LowerLimit()){
 					
 				Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "checkOlOrDol: feedback DOL");
-				return ExpMeasGlass.DOL;
+				return "DOL";
 			}
-		}else if(autoFbkSeting.getLUpperLimit() <= maxOL.getxValue() && maxOL.getxValue() <= autoFbkSeting.getUUpperLimit() &&
-				autoFbkSeting.getLLowerLimit() <= minOL.getxValue() && minOL.getxValue() <= autoFbkSeting.getULowerLimit() && 
-				autoFbkSeting.getLUpperLimit() <= maxOL.getyValue() && maxOL.getyValue() <= autoFbkSeting.getUUpperLimit() &&
-				autoFbkSeting.getLLowerLimit() <= minOL.getyValue() && minOL.getyValue() <= autoFbkSeting.getULowerLimit()){
+		}
+		if(autoFbkSeting.getOl_L_UpperLimit() <= maxOL.getxValue() && maxOL.getxValue() <= autoFbkSeting.getOl_U_UpperLimit() &&
+				autoFbkSeting.getOl_L_LowerLimit() <= minOL.getxValue() && minOL.getxValue() <= autoFbkSeting.getOl_U_LowerLimit() && 
+				autoFbkSeting.getOl_L_UpperLimit() <= maxOL.getyValue() && maxOL.getyValue() <= autoFbkSeting.getOl_U_UpperLimit() &&
+				autoFbkSeting.getOl_L_LowerLimit() <= minOL.getyValue() && minOL.getyValue() <= autoFbkSeting.getOl_U_LowerLimit()){
 			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "checkOlOrDol: feedback OL");
-			return ExpMeasGlass.OL;
+			return "OL";
 		}
 		Utility.saveToLogHistoryDB(GlobleVar.LogDebugType, "checkOlOrDol: don't need feedback");
-		return 0;
+		return "";
 	}
 	
 	private static List<Vector2D> getCsvMeasPointList(MeasureFileDataBase csv, String coordXStr, String coordYStr, 
@@ -481,21 +533,24 @@ public class ExpMeasGlass {
 			lastExpTime.setExpTime(1234);
 		}else {
 			lastExpTime = T_LastExpTime_CRUD.read(this.expID, this.expRcpID);
+			if (lastExpTime == null) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "checkIsDataVaild: cannot get T_LastExpTime");
+			}
 		}
-		int err;
-		err = Utility.checkErrorAndLog(lastExpTime, null, GlobleVar.LogInfoType, "checkIsDataVaild: cannot get T_LastExpTime");
 		
-		T_LastExpTime aLastExpTime = new T_LastExpTime();
-		aLastExpTime.setExpId(this.getExpID());
-		aLastExpTime.setExpTime(this.getExposureTime());
-		aLastExpTime.setRcpId(this.getExpRcpID());
+		
 		long pevsGlassExposureTime = -1;
-		if (err == 0) {
+		if (lastExpTime != null) {
 			pevsGlassExposureTime = lastExpTime.getExpTime();
+			lastExpTime.setExpTime(this.getExposureTime());
 			// update
-			T_LastExpTime_CRUD.update(aLastExpTime);
-		}else if (err == -1) {
+			T_LastExpTime_CRUD.update(lastExpTime);
+		}else if (lastExpTime == null) {
 			// create
+			T_LastExpTime aLastExpTime = new T_LastExpTime();
+			aLastExpTime.setExpId(this.getExpID());
+			aLastExpTime.setExpTime(this.getExposureTime());
+			aLastExpTime.setRcpId(this.getExpRcpID());
 			T_LastExpTime_CRUD.create(aLastExpTime);
 		}
 		
@@ -507,34 +562,38 @@ public class ExpMeasGlass {
 			autoFeedbackSetting = T_AutoFeedbackSetting_CRUD.read(this.getProductName(), 
 																	this.getExpID(), 
 																	this.getExpRcpID(), 
-																	this.getMeasStepID(), 
 																	this.getMeasRcpID(), 
-																	this.getAdcOrFdc());		
+																	this.getMeasStepID(), 
+																	this.getAdcOrFdc());	
+			if (autoFeedbackSetting == null) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "checkIsDataVaild Error: cannot get T_AutoFeedbackSetting");
+				return false;
+			}
 		}
-		err = Utility.checkErrorAndLog(autoFeedbackSetting, null, GlobleVar.LogErrorType, "checkIsDataVaild Error: cannot get T_AutoFeedbackSetting");
-		if (err == -1) return false;
 		long expireTime = autoFeedbackSetting.getExpiretime(); 
-		
-		if (this.getExposureTime() - pevsGlassExposureTime > expireTime){
-			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "checkIsDataVaild: the exposure time length between this glass and previous glass is bigger than setting expireTime");
-			cleanTargetGlassSet(this);
-			return false;
+		if (expireTime != 0) {
+			if (this.getExposureTime() - pevsGlassExposureTime > expireTime){
+				Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "checkIsDataVaild: the exposure time length between this glass and previous glass is bigger than setting expireTime");
+				cleanTargetGlassSet(this);
+				return false;
+			}
 		}
-
+	
 		// check the time length between the track in time of this glass and the last feedback time of this (EXP, recipe)
-		long thisGlassTrackInTime = getMesTrackInTime(this.getGlassID(), this.getExpStepID(), this.getExpID()); // TODO
+		long thisGlassTrackInTime = getMesTrackInTime(this.getGlassID(), this.getExpStepID(), this.getExpID());
 		if (thisGlassTrackInTime == -1) {
 			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "checkIsDataVaild Error: cannot find track in time");
 			return false;
 		}
 		Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "getCsvTrackInTime: find track in time Success");
 
+		long lastFdbkTime = 0;
 		FeedbackTime ft = FeedbackTime_CRUD.read(this.expID, "", this.expRcpID);
 		if (ft == null) {
-			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "checkIsDataVaild Error: cannot get info from Table FeedbackTime");
-			return false;
+			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "checkIsDataVaild fail: cannot get info from Table FeedbackTime");
+		}else {
+			lastFdbkTime = ft.getUpdateTime();
 		}
-		long lastFdbkTime = ft.getUpdateTime();
 		
 		if(thisGlassTrackInTime < lastFdbkTime){
 			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "checkIsDataVaild fail: trackIn time is before last feedback time of this (EXP, recipe)");

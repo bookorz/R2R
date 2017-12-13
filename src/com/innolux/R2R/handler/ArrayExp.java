@@ -1,6 +1,9 @@
 package com.innolux.R2R.handler;
 
+import java.util.Comparator;
 import java.util.InputMismatchException;
+import java.util.Iterator;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 import com.innolux.R2R.ArrayExp.model.ExpMeasGlass;
@@ -48,8 +51,12 @@ public class ArrayExp implements IFileData{
 		Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "onFileData: glass data is vaild");
 		
 		// add glass to target Glass set 
-		boolean status = csv.StoreFile(emGlass.getMeasEqId(), emGlass.getMeasSubEqId(), emGlass.getMeasRcpID(), 
-						emGlass.getExpID(), "", emGlass.getExpRcpID());
+		boolean status = csv.StoreFile(emGlass.getMeasEqId(), 
+									   emGlass.getMeasSubEqId(), 
+									   emGlass.getMeasRcpID(), 
+									   emGlass.getExpID(), 
+									   "", 
+									   emGlass.getExpRcpID());
 		if (!status) {
 			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "ArrayExp onFileData Error: cannot add glass to target Glass set");
 			return;
@@ -124,13 +131,46 @@ public class ArrayExp implements IFileData{
 		if (aState.getCount() < aSetting.getPopulationSize()) {
 			return 0;
 		}
-		int populationSize = aState.getCount();
-		int sampleSize = aSetting.getSampleSize();
-		boolean isMatch = checkGlassMatchFeedbackCondition(aGlass.getMeasPointList(), aSetting);
-		
-		MeasureFileDataBase
+			
+		List<MeasureFileDataBase> csvList = MeasureFileReader.GetAllFiles(aGlass.getMeasEqId(), aGlass.getMeasSubEqId(), aGlass.getMeasRcpID(), aGlass.getExpID(), "", aGlass.getExpRcpID());
+		if (csvList == null) {
+			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "checkStartFeedback Error: get MeasureFileReader file Error");
+			return -1;
+		}
+		Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "checkStartFeedback: get MeasureFileReader file success");
+			
+		if (csvList.size() < aSetting.getSampleSize()) {
+			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "checkStartFeedback fail: number of target glass < sample size");
+			return 0;
+		}
+		if (csvList.size() < aSetting.getPopulationSize()) {
+			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "checkStartFeedback fail: number of target glass < Population size");
+			return 0;
+		}
+
+		// MeasureFileDataBase csv to ExpMeasGlass
+		for(MeasureFileDataBase aCsv: csvList){
+			
+		}
 		//#TODO
+		// ordering the glassList by exp time
+//		glassList.stream().sorted(Comparator.comparing(ClassName::getFieldName).reversed());
+//			
+//		// get first population size glass in glassList
+//		// check each of them if it needs feedback
+//			// save the need feedback glass index into list
+//			// sum the glass who needs feedback
+//		// if (sum < sample.size()) return false;
+//		// checkActiveRule
+//		
+//		int populationSize = aState.getCount();
+//		int sampleSize = aSetting.getSampleSize();
+//		boolean isMatch = checkGlassMatchFeedbackCondition(aGlass, aSetting);
+
 		return 1;
 	}
-	
+	private boolean checkGlassMatchFeedbackCondition(ExpMeasGlass aGlass, T_AutoFeedbackSetting aSetting){
+		return false;
+	}
 }
+

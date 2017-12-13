@@ -31,14 +31,20 @@ public class T_LastExpTime_CRUD {
 			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
 
 			if(!expId.equals("")){
-				sqlWhereMap.put("expId", expId);
+				sqlWhereMap.put("exp_Id", expId);
 			}
 			if(!rcpId.equals("")){
-				sqlWhereMap.put("rcpId", rcpId);
+				sqlWhereMap.put("rcp_Id", rcpId);
 			}
 			
 			List<T_LastExpTime> tmp = T_LastExpTime_DAO.findAllByConditions(sqlWhereMap, T_LastExpTime.class);
-			if(tmp.size()!=0) {
+			if (tmp == null) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "T_LastExpTime read Error: tmp = null");
+				return null;
+			}else if (tmp.size() == 0) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "T_LastExpTime read Error: tmp.size = 0");
+				return null;
+			}if (tmp.size() != 0) {
 				return tmp.get(0);
 			}
 		}catch(Exception e){

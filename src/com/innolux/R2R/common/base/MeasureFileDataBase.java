@@ -37,7 +37,7 @@ public class MeasureFileDataBase {
 				for(long index:sectionData.keySet()){
 					String eachRow = sectionData.get(index);
 					MeasureFileData RowData = new MeasureFileData();
-					RowData.setEqpId(PreSubEqpId);
+					RowData.setEqpId(EqpId);
 					RowData.setSubEqpId(SubEqpId);
 					RowData.setRecipe(Recipe);
 					RowData.setPreEqpId(PreEqpId);
@@ -106,14 +106,15 @@ public class MeasureFileDataBase {
 				Hashtable<Long,String> valueData = data.get(headerName);				
 				if (valueData.size() != 0) {
 					
-					for (int i = 0;i<valueData.size();i++) {
+					for (int i = 0; i < valueData.size(); i++) {
 						String name = "";
 						
-						String[] rowAry = valueData.get(i).split(":");
-						if (rowAry.length >= 2) {
-							name = rowAry[0];
+						String[] rowAry = valueData.get((long)i).split(",");
+						String[] rowAry2 = rowAry[0].split(":");
+						if (rowAry2.length >= 2) {
+							name = rowAry2[0];
 							if (name.equals(Name)) {
-								result = rowAry[1];
+								result = rowAry2[1];
 								break;
 							}
 						}
