@@ -5,7 +5,7 @@ import com.innolux.annotation.Entity;
 import com.innolux.annotation.Id;
 
 //P32
-@Entity("Exp_RcpID_2_RcpName") // table name
+@Entity("ArrayExp_Exp_RcpID_2_RcpName") // table name
 public class T_ExpRcpID2Name {
 	@Id("Primarykey")
 	private String Primarykey;

@@ -5,7 +5,7 @@ import com.innolux.annotation.Entity;
 import com.innolux.annotation.Id;
 
 // P33
-@Entity("Canon_Exp_SiteNo_2_ScanNo") // table name
+@Entity("ArrayExp_Canon_Exp_SiteNo_2_ScanNo") // table name
 public class T_CanonExpSiteNo2ScanNo{
 	@Id("Primarykey")
 	private String Primarykey;

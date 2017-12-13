@@ -1,5 +1,7 @@
 package com.innolux.R2R.model;
 
+import java.util.Date;
+
 import com.innolux.annotation.Column;
 import com.innolux.annotation.Entity;
 import com.innolux.services.ObjectAnalyzer;
@@ -7,21 +9,20 @@ import com.innolux.services.ObjectAnalyzer;
 @Entity("Log_History") // 表名
 public class LogHistory {
 	
-	@Column("Time")
-	private long Time;
+	@Column("TimeStamp")
+	private Date Time;
 
-	@Column("Level")
+	@Column("LogLevel")
 	private String Level;
 
 	@Column("LogString")
 	private String LogString;
 	
-	
-	public long getTime() {
+	public Date getTime() {
 		return Time;
 	}
-
-	public void setTime(long time) {
+	
+	public void setTime(Date time) {
 		Time = time;
 	}
 

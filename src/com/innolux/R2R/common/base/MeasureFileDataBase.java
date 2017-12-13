@@ -2,7 +2,9 @@ package com.innolux.R2R.common.base;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
+
 
 import org.apache.log4j.Logger;
 
@@ -25,9 +27,7 @@ public class MeasureFileDataBase {
 		FileName = fileName;
 	}
 
-	public boolean StoreFile(String EqpId, String SubEqpId, String Recipe, String PreEqpId,
-			String PreSubEqpId, String PreRecipe){
-		boolean result = false;
+	public boolean StoreFile(String EqpId, String Recipe){
 		try {
 			for(String eachheader:data.keySet()){
 
@@ -36,12 +36,8 @@ public class MeasureFileDataBase {
 				for(long index:sectionData.keySet()){
 					String eachRow = sectionData.get(index);
 					MeasureFileData RowData = new MeasureFileData();
-					RowData.setEqpId(PreSubEqpId);
-					RowData.setSubEqpId(SubEqpId);
+					RowData.setEqpId(EqpId);				
 					RowData.setRecipe(Recipe);
-					RowData.setPreEqpId(PreEqpId);
-					RowData.setPreSubEqpId(PreSubEqpId);
-					RowData.setPreEqpRecipe(PreRecipe);
 					RowData.setFileName(this.getFileName());					
 					RowData.setHeaderName(eachheader);					
 					RowData.setRowData(eachRow);
@@ -52,11 +48,11 @@ public class MeasureFileDataBase {
 				
 			}
 
-			result = true;
+			return true;
 		} catch (Exception e) {
 			logger.error(ToolUtility.StackTrace2String(e));
+			return false;
 		}
-		return result;
 	}
 
 	public void Store(String headerName,long index, String raw) {
@@ -105,14 +101,15 @@ public class MeasureFileDataBase {
 				Hashtable<Long,String> valueData = data.get(headerName);				
 				if (valueData.size() != 0) {
 					
-					for (int i = 0;i<valueData.size();i++) {
+					for (int i = 0; i < valueData.size(); i++) {
 						String name = "";
 						
-						String[] rowAry = valueData.get(i).split(":");
-						if (rowAry.length >= 2) {
-							name = rowAry[0];
+						String[] rowAry = valueData.get((long)i).split(",");
+						String[] rowAry2 = rowAry[0].split(":");
+						if (rowAry2.length >= 2) {
+							name = rowAry2[0];
 							if (name.equals(Name)) {
-								result = rowAry[1];
+								result = rowAry2[1];
 								break;
 							}
 						}
@@ -173,7 +170,11 @@ public class MeasureFileDataBase {
 								break;
 							} else {
 								String[] value = valueData.get((long)i).split(",");
-								result.add(value[headerIdx]);
+								try {
+									result.add(value[headerIdx]);
+								}catch(Exception e1) {
+									result.add("");
+								}
 							}
 						}
 
@@ -186,24 +187,73 @@ public class MeasureFileDataBase {
 		return result;
 	}
 	
-	public String getCsvValByRowCol(String Session, String keyCol, String keyStr, String correspondCol){
-		List<String> keyList = this.FetchList(Session, keyCol);
+	public String getCsvValByRowCol(String Session, String key1Col, String key1Str, String correspondCol){
+		List<String> key1List = this.FetchList(Session, key1Col);
 		List<String> correspondList = this.FetchList(Session, correspondCol);
 		
-		if(keyList == null || correspondList == null){
-			logger.debug("ArrayExp getCsvValByRowCol: " + keyCol + " List = null || " + correspondCol + " List = null");
+		if(key1List == null || correspondList == null){
+			logger.debug("ArrayExp getCsvValByRowCol: " + key1Col + " List = null || " + correspondCol + " List = null");
 			return "";
-		}else if(keyList.size() == 0 || correspondList.size() == 0){
-			logger.debug("ArrayExp getCsvValByRowCol: " + keyCol + " size = 0 || " + correspondCol + " size = 0");
+		}else if(key1List.size() == 0 || correspondList.size() == 0){
+			logger.debug("ArrayExp getCsvValByRowCol: " + key1Col + " size = 0 || " + correspondCol + " size = 0");
 			return "";
-		}else if(keyList.size() != correspondList.size()){
-			logger.debug("ArrayExp getCsvValByRowCol: " + keyCol + " size != 0 " + correspondCol + " size");
+		}
+		
+		int keyInd = key1List.indexOf(key1Str);
+		String correspondStr = correspondList.get(keyInd);
+		return correspondStr;
+	}
+		
+	public String getCsvValByRowCol(String Session, String key1Col, String key1Str, 
+													String key2Col, String key2Str, String correspondCol){
+		List<String> key1List = this.FetchList(Session, key1Col);
+		List<String> key2List = this.FetchList(Session, key2Col);
+		List<String> correspondList = this.FetchList(Session, correspondCol);
+		
+		if(key1List == null || key2List == null || correspondList == null){
+			logger.debug("ArrayExp getCsvValByRowCol: " + key1Col + " List = null || " + 
+							key2Col + " List = null || " + correspondCol + " List = null");
+			return "";
+		}else if(key1List.size() == 0 || key2List.size() == 0 || correspondList.size() == 0){
+			logger.debug("ArrayExp getCsvValByRowCol: " + key1Col + " size = 0 || " + 
+						key2Col + " size = 0 || " + 
+						correspondCol + " size = 0");
+			return "";
+		}else if(key1List.size() != key2List.size()){
+			logger.debug("ArrayExp getCsvValByRowCol: " + key1Col + " size != 0 " + key2Col + " size");
+			return "";
+		}else if(key1List.size() != correspondList.size()){
+			logger.debug("ArrayExp getCsvValByRowCol: " + key1Col + " size != 0 " + correspondCol + " size");
 			return "";
 		}
 
-		int keyStrInd = keyList.indexOf(keyStr);
-		String correspondStr = correspondList.get(keyStrInd);
+		for(int ind = 0; ind < key1List.size(); ind++) {
+			key1List.set(ind, key1List.get(ind) + key2List.get(ind));
+		}
+		int keyInd = key1List.indexOf(key1Str + key2Str);
+		String correspondStr = correspondList.get(keyInd);
 		return correspondStr;
 	}
+	
+	public int indexOfFirstValidValueInCol(String Session, String key1Col){
+		List<String> key1List = this.FetchList(Session, key1Col);
+		if(key1List == null){
+			logger.debug("ArrayExp getCsvValByRowCol: " + key1Col + " List = null");
+			return -1;
+		}else if(key1List.size() == 0){
+			logger.debug("ArrayExp getCsvValByRowCol: " + key1Col + " size = 0");
+			return -1;
+		}
+		Iterator<String> iter = key1List.iterator();
+		while(iter.hasNext()) {
+			String element = (String)iter.next();
+			if(!element.equals("") && !element.equals("0")) {
+				return key1List.indexOf(element);
+			}
+		}
+		return -1;
+	}
+	
+	
 	
 }

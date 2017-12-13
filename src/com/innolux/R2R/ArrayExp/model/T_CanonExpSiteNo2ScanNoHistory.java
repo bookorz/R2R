@@ -4,7 +4,7 @@ import com.innolux.annotation.Column;
 import com.innolux.annotation.Entity;
 
 // P38
-@Entity("Canon_EXP_SiteNo_2_ScanNo_Setting_History") // table name
+@Entity("ArrayExp_Canon_EXP_SiteNo_2_ScanNo_Setting_History") // table name
 public class T_CanonExpSiteNo2ScanNoHistory {
 	@Column("Product")
 	private String Product;

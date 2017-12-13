@@ -4,7 +4,7 @@ import com.innolux.annotation.Column;
 import com.innolux.annotation.Entity;
 
 //p36
-@Entity("Auto_Feedback_Setting_History") // table name
+@Entity("ArrayExp_Auto_Feedback_Setting_History") // table name
 public class T_AutoFeedbackSettingHistory {
 	@Column("Active_Flag")
 	private String ActiveFlag;

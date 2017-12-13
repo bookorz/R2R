@@ -11,19 +11,20 @@ import com.innolux.R2R.common.ToolUtility;
 import com.innolux.dao.GenericDao;
 import com.innolux.dao.JdbcGenericDaoImpl;
 
-public class T_EqGroup2EqID_CRUD {
-	private static Logger logger = Logger.getLogger(T_EqGroup2EqID_CRUD.class);
-	private static GenericDao<T_EqGroup2EqID> T_EqGroup2EqID_DAO = 
-			new JdbcGenericDaoImpl <T_EqGroup2EqID> (GlobleVar.R2R_DB);
-	
-	public static T_EqGroup2EqID read(String EqID){
+public class MES_fwflatnode_CRUD {
+	private static Logger logger = Logger.getLogger(MES_fwflatnode_CRUD.class);
+	private static GenericDao<MES_fwflatnode> MES_fwflatnode_DAO = 
+			new JdbcGenericDaoImpl <MES_fwflatnode> (GlobleVar.ARRAYMesDB);
+			
+	public static MES_fwflatnode read(String stepSeq){
 		try{
 			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
 
-			if(!EqID.equals("")){
-				sqlWhereMap.put("EqID", EqID);
+			if(!stepSeq.equals("")){
+				sqlWhereMap.put("stepSeq", stepSeq);
 			}
-			List<T_EqGroup2EqID> tmp = T_EqGroup2EqID_DAO.findAllByConditions(sqlWhereMap, T_EqGroup2EqID.class);
+			
+			List<MES_fwflatnode> tmp = MES_fwflatnode_DAO.findAllByConditions(sqlWhereMap, MES_fwflatnode.class);
 			if(tmp.size()!=0) {
 				return tmp.get(0);
 			}
