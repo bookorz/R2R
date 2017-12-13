@@ -5,8 +5,12 @@ import org.apache.log4j.Logger;
 import com.innolux.R2R.bc.BC;
 import com.innolux.R2R.cf_coater.model.AP_Status;
 import com.innolux.R2R.cf_coater.model.AP_Status_CRUD;
+import com.innolux.R2R.cf_coater.model.False_Range_Setting;
+import com.innolux.R2R.cf_coater.model.False_Range_Setting_CRUD;
 import com.innolux.R2R.cf_coater.model.Last_Process_Time;
 import com.innolux.R2R.cf_coater.model.Last_Process_Time_CRUD;
+import com.innolux.R2R.cf_coater.model.Measure_point_Setting;
+import com.innolux.R2R.cf_coater.model.Measure_point_Setting_CRUD;
 import com.innolux.R2R.common.ToolUtility;
 import com.innolux.R2R.common.base.MeasureFileDataBase;
 import com.innolux.R2R.common.base.RegulationCollection;
@@ -22,6 +26,12 @@ import com.innolux.services.MeasureFileReader;
 
 public class CFCoater implements IFileData {
 	private static Logger logger = Logger.getLogger(CFCoater.class);
+
+	private class GlassSummary {
+		public double Engage_Avg = 0;
+		public double Plunge_Avg = 0;
+		public double Retract_Avg = 0;
+	}
 
 	public CFCoater(String _SourcePatch, String _NgPath) {
 		MeasureFileReader fileService = new MeasureFileReader();
@@ -76,17 +86,18 @@ public class CFCoater implements IFileData {
 				MeasureFileReader.DeleteAllFiles("", "", "", PreEqpId1, PreSubEqpId1, PreRecipeNo);
 			}
 
-			if (PreFilter(data)) {
-				//store to waiting handle list
+			if (PSHPreFilter(data)) {
+				// store to waiting handle list
 				data.StoreFile("", "", "", PreEqpId1, PreSubEqpId1, PreRecipeNo);
-				cfg.setCurrent_Count(cfg.getCurrent_Count()+1);
-				
-				if (cfg.getCurrent_Count() >= cfg.getTotal_Count()) { //calculate feedback
-					RegulationCollection feedbackObj = Calculation(data);
+				cfg.setCurrent_Count(cfg.getCurrent_Count() + 1);
+
+				if (cfg.getCurrent_Count() >= cfg.getTotal_Count()) { // calculate
+																		// feedback
+					RegulationCollection feedbackObj = PSHCalculation(data);
 					if (feedbackObj.GetRegulationCount() != 0) {
-						//feedback to coater
+						// feedback to coater
 						BC bc = new BC(EqpId);
-						
+
 						if (bc.Excute(feedbackObj)) {
 							logger.info("SendToBC successful.");
 						} else {
@@ -108,15 +119,40 @@ public class CFCoater implements IFileData {
 		}
 	}
 
-	private boolean PreFilter(MeasureFileDataBase data) {
+	private boolean PSHPreFilter(MeasureFileDataBase data) {
 		boolean result = false;
-		
-		
+		try {
+			GlassSummary summary = GetPSHGlassSummary(data);
+			
+			if(summary!=null){
+				False_Range_Setting filterSetting = False_Range_Setting_CRUD.read(data.FetchValue("GLASS_DATA", "RECIPE_ID"));
+				if(summary.Engage_Avg>filterSetting.getFilter_UpLimit()||summary.Engage_Avg<filterSetting.getFilter_LowLimit()){
+					logger.info("CFCoater PreFilter Engage_Avg is not pass by OOS limit.");
+					return false;
+				}
+				
+				if(summary.Plunge_Avg>filterSetting.getFilter_UpLimit()||summary.Plunge_Avg<filterSetting.getFilter_LowLimit()){
+					logger.info("CFCoater PreFilter Plunge_Avg is not pass by OOS limit.");
+					return false;
+				}
+				
+				if(summary.Retract_Avg>filterSetting.getFilter_UpLimit()||summary.Retract_Avg<filterSetting.getFilter_LowLimit()){
+					logger.info("CFCoater PreFilter Retract_Avg is not pass by OOS limit.");
+					return false;
+				}
+				
+			}else{
+				logger.error("CFCoater PreFilter summary is null.");
+			}
+			
 
+		} catch (Exception e) {
+			logger.error("CFCoater PreFilter " + ToolUtility.StackTrace2String(e));
+		}
 		return result;
 	}
 
-	private RegulationCollection Calculation(MeasureFileDataBase data) {
+	private RegulationCollection PSHCalculation(MeasureFileDataBase data) {
 		RegulationCollection result = new RegulationCollection();
 
 		try {
@@ -125,6 +161,42 @@ public class CFCoater implements IFileData {
 			logger.error(ToolUtility.StackTrace2String(e));
 		}
 		return result;
+	}
+
+	private GlassSummary GetPSHGlassSummary(MeasureFileDataBase data) {
+		GlassSummary summary = new GlassSummary();
+		try {
+			Measure_point_Setting mp = Measure_point_Setting_CRUD.read(data.FetchValue("GLASS_DATA", "RECIPE_ID"));
+			if (mp != null) {
+				String[] Engage_Col = mp.getEngage_Col().split(",");
+				String[] Plunge_Col = mp.getPlunge_Col().split(",");
+				String[] Retract_Col = mp.getRetract_COl().split(",");
+
+				for (String SiteName : Engage_Col) {
+					summary.Engage_Avg += Double
+							.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", SiteName, "MPSH"));
+				}
+				summary.Engage_Avg = summary.Engage_Avg / (double) Engage_Col.length;
+				for (String SiteName : Plunge_Col) {
+					summary.Plunge_Avg += Double
+							.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", SiteName, "MPSH"));
+				}
+				summary.Plunge_Avg = summary.Plunge_Avg / (double) Plunge_Col.length;
+				for (String SiteName : Retract_Col) {
+					summary.Retract_Avg += Double
+							.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", SiteName, "MPSH"));
+				}
+				summary.Retract_Avg = summary.Retract_Avg / (double) Retract_Col.length;
+
+			} else {
+				logger.error("CFCoater GetGlassSummary Measure_point_Setting is null");
+				summary = null;
+			}
+		} catch (Exception e) {
+			logger.error("CFCoater GetGlassSummary " + ToolUtility.StackTrace2String(e));
+			summary = null;
+		}
+		return summary;
 	}
 
 	private String getPreRecipeNo(String BCName, String EqpType, String PPID) {
@@ -187,14 +259,6 @@ public class CFCoater implements IFileData {
 		return result;
 	}
 
-	private boolean checkCoaterProcessTime() {
-		boolean result = false;
-		try {
-
-		} catch (Exception e) {
-			logger.error(ToolUtility.StackTrace2String(e));
-		}
-		return result;
-	}
+	
 
 }

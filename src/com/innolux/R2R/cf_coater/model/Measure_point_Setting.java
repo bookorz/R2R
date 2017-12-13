@@ -6,8 +6,8 @@ import com.innolux.annotation.Id;
 import com.innolux.services.ObjectAnalyzer;
 @Entity("CfCoater_point_Setting") // 表名
 public class Measure_point_Setting {
-	@Id("RecipeNo")
-	private String RecipeNo;
+	@Id("PPID")
+	private String PPID;
 	@Column("Engage_Col")
 	private String Engage_Col;
 	@Column("Plunge_Col")
@@ -15,11 +15,12 @@ public class Measure_point_Setting {
 	@Column("Retract_COl")
 	private String Retract_COl;
 	
-	public String getRecipeNo() {
-		return RecipeNo;
+	
+	public String getPPID() {
+		return PPID;
 	}
-	public void setRecipeNo(String recipeNo) {
-		RecipeNo = recipeNo;
+	public void setPPID(String pPID) {
+		PPID = pPID;
 	}
 	public String getEngage_Col() {
 		return Engage_Col;
