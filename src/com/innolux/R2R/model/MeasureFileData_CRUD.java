@@ -25,7 +25,7 @@ public class MeasureFileData_CRUD {
 		return result;
 	}
 	
-	public static List<MeasureFileData> read(String EqpId,String SubEqpId, String Recipe,String PreEqpId, String PreSubEqpId, String PreRecipe){
+	public static List<MeasureFileData> read(String EqpId,String Recipe){
 		List<MeasureFileData> result = null;
 		try{
 			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
@@ -33,21 +33,10 @@ public class MeasureFileData_CRUD {
 			if(!EqpId.equals("")){
 				sqlWhereMap.put("EqpId", EqpId);
 			}
-			if(!SubEqpId.equals("")){
-				sqlWhereMap.put("SubEqpId", SubEqpId);
-			}
 			if(!Recipe.equals("")){
 				sqlWhereMap.put("Recipe", Recipe);
 			}
-			if(!EqpId.equals("")){
-				sqlWhereMap.put("PreEqpId", PreEqpId);
-			}
-			if(!SubEqpId.equals("")){
-				sqlWhereMap.put("PreSubEqpId", PreSubEqpId);
-			}
-			if(!Recipe.equals("")){
-				sqlWhereMap.put("PreRecipe", PreRecipe);
-			}
+			
 			result = MeasureFileData_Dao.findAllByConditions(sqlWhereMap, MeasureFileData.class);
 			
 		}catch(Exception e){

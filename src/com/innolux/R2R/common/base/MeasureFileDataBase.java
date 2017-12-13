@@ -27,8 +27,7 @@ public class MeasureFileDataBase {
 		FileName = fileName;
 	}
 
-	public boolean StoreFile(String EqpId, String SubEqpId, String Recipe, String PreEqpId,
-			String PreSubEqpId, String PreRecipe){
+	public boolean StoreFile(String EqpId, String Recipe){
 		try {
 			for(String eachheader:data.keySet()){
 
@@ -37,12 +36,8 @@ public class MeasureFileDataBase {
 				for(long index:sectionData.keySet()){
 					String eachRow = sectionData.get(index);
 					MeasureFileData RowData = new MeasureFileData();
-					RowData.setEqpId(EqpId);
-					RowData.setSubEqpId(SubEqpId);
+					RowData.setEqpId(EqpId);				
 					RowData.setRecipe(Recipe);
-					RowData.setPreEqpId(PreEqpId);
-					RowData.setPreSubEqpId(PreSubEqpId);
-					RowData.setPreEqpRecipe(PreRecipe);
 					RowData.setFileName(this.getFileName());					
 					RowData.setHeaderName(eachheader);					
 					RowData.setRowData(eachRow);

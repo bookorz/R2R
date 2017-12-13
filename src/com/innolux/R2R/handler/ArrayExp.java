@@ -51,11 +51,9 @@ public class ArrayExp implements IFileData{
 		Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "onFileData: glass data is vaild");
 		
 		// add glass to target Glass set 
-		boolean status = csv.StoreFile(emGlass.getMeasEqId(), 
-									   emGlass.getMeasSubEqId(), 
-									   emGlass.getMeasRcpID(), 
+		boolean status = csv.StoreFile( 
 									   emGlass.getExpID(), 
-									   "", 
+							 
 									   emGlass.getExpRcpID());
 		if (!status) {
 			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "ArrayExp onFileData Error: cannot add glass to target Glass set");
