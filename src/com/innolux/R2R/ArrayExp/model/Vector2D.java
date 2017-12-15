@@ -1,5 +1,7 @@
 package com.innolux.R2R.ArrayExp.model;
 
+import javax.naming.spi.DirStateFactory.Result;
+
 public class Vector2D {
 	double xAxis;
 	double yAxis;
@@ -49,5 +51,10 @@ public class Vector2D {
 		this.yValue = yValue;
 	}
 	
-	
+	public String toString() {
+		String result = "";
+		result += String.valueOf(this.xAxis) + "," + String.valueOf(this.yAxis) + ",";
+		result += String.valueOf(this.xValue)+ ","  + String.valueOf(this.yValue)+ ";" ;
+		return result; 
+	}
 }

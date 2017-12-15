@@ -8,7 +8,7 @@ import com.innolux.dao.GenericDao;
 import com.innolux.dao.JdbcGenericDaoImpl;
 
 public class LogHistory_CRUD {
-	private static Logger logger = Logger.getLogger(FeedbackTime_CRUD.class);
+	private static Logger logger = Logger.getLogger(LogHistory_CRUD.class);
 	private static GenericDao<LogHistory> LogHistory_Dao = new JdbcGenericDaoImpl<LogHistory>(GlobleVar.R2R_DB);
 	
 	public static boolean create(LogHistory loghisty){

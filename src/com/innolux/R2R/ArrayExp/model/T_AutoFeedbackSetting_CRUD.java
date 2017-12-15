@@ -19,7 +19,9 @@ public class T_AutoFeedbackSetting_CRUD {
 										 String MeaRcpID, String MeaStepID, String AdcOrFdc){
 		try{
 			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
-
+			
+			sqlWhereMap.put("Active_Flag", "ON");
+			
 			if(!Product.equals("")){
 				sqlWhereMap.put("Product", Product);
 			}
