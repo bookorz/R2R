@@ -32,7 +32,7 @@ public class T_ArrayExpCurrentState_CRUD {
 			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
 
 			if(!Product.equals("")){
-				sqlWhereMap.put("Product", Product);
+				sqlWhereMap.put("Product_Name", Product);
 			}
 			if(!ExpID.equals("")){
 				sqlWhereMap.put("Exp_ID", ExpID);

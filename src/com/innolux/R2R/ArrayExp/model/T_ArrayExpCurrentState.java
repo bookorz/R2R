@@ -7,7 +7,7 @@ import com.innolux.services.ObjectAnalyzer;
 
 @Entity("ArrayExp_Current_State") // table name
 public class T_ArrayExpCurrentState {
-	@Id("Primarykey")
+	@Id("PrimaryKey")
 	private String Primarykey;
 	
 	@Column("Product_Name")
@@ -33,6 +33,10 @@ public class T_ArrayExpCurrentState {
 	
 	@Column("Count")
 	private int Count;
+	
+	public T_ArrayExpCurrentState() {
+		
+	}
 
 	public T_ArrayExpCurrentState (ExpMeasGlass aGlass) {
 		this.productName = aGlass.getProductName();

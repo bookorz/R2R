@@ -1,8 +1,14 @@
 package com.innolux.R2R.ArrayExp.model;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Scanner;
 
 import org.apache.log4j.Logger;
@@ -17,12 +23,13 @@ public class Utility {
 	private static Logger logger = Logger.getLogger(Utility.class);
 	
 	public static void main(String [] argv) {
-		Scanner sc = new Scanner(System.in);
-		String str = sc.nextLine();
-		sc.close();
-		Date d1 = dateStr2Date(str);
 		
-		System.out.println(d1.getTime());
+		try {
+			String NikonX = String.format("%.2f", -999999.99);
+			System.out.println(NikonX);
+		}catch(Exception e) {
+			 System.out.println(e.getMessage());
+		}
 	}
 	
 	public static Date dateStr2Date(String dateStr) {

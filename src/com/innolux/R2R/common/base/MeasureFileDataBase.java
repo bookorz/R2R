@@ -29,11 +29,11 @@ public class MeasureFileDataBase {
 
 	public boolean StoreFile(String EqpId, String Recipe){
 		try {
-			for(String eachheader:data.keySet()){
+			for(String eachheader: data.keySet()){
 
-				Hashtable<Long,String> sectionData = data.get(eachheader);
+				Hashtable<Long, String> sectionData = data.get(eachheader);
 				
-				for(long index:sectionData.keySet()){
+				for(long index: sectionData.keySet()){
 					String eachRow = sectionData.get(index);
 					MeasureFileData RowData = new MeasureFileData();
 					RowData.setEqpId(EqpId);				
@@ -55,7 +55,7 @@ public class MeasureFileDataBase {
 		}
 	}
 
-	public void Store(String headerName,long index, String raw) {
+	public void Store(String headerName, long index, String raw) {
 		try {
 			if (data.containsKey(headerName)) {
 				Hashtable<Long,String> tmp = data.get(headerName);

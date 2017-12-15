@@ -7,7 +7,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.rmi.CORBA.Util;
+import javax.naming.spi.DirStateFactory.Result;
 
 import org.apache.log4j.Logger;
 
@@ -217,6 +217,39 @@ public class ExpMeasGlass {
 		this.measPointList = measPointList;
 	}
 	
+	public String getOl01ListStr() {
+		String result = "";
+		for (Vector2D vector2d: this.measPointList) {
+			result += String.valueOf(vector2d.xValue) + ",";
+		}
+		result = result.substring(0, result.length() - 1);
+		return result;
+	}
+	public String getOl02ListStr() {
+		String result = "";
+		for (Vector2D vector2d: this.measPointList) {
+			result += String.valueOf(vector2d.yValue) + ",";
+		}
+		result = result.substring(0, result.length() - 1);
+		return result;
+	}
+	public String getCoordXListStr() {
+		String result = "";
+		for (Vector2D vector2d: this.measPointList) {
+			result += String.valueOf(vector2d.xAxis) + ",";
+		}
+		result = result.substring(0, result.length() - 1);
+		return result;
+	}
+	public String getCoordYListStr() {
+		String result = "";
+		for (Vector2D vector2d: this.measPointList) {
+			result += String.valueOf(vector2d.yAxis) + ",";
+		}
+		result = result.substring(0, result.length() - 1);
+		return result;
+	}
+	
 	private static Logger logger = Logger.getLogger(ExpMeasGlass.class);
 
 	public static ExpMeasGlass csv2ExpMeasGlass(MeasureFileDataBase csv){
@@ -345,14 +378,20 @@ public class ExpMeasGlass {
 			else 
 				Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "csv2ExpMeasGlass: get maxDOL info successfully");
 			
-			aGlass.setAdcOrFdc("");
+			aGlass.setAdcOrFdc("NULL");
 			if(aGlass.getExpSupplier().equals("Canon")) {
 				aGlass.setAdcOrFdc("ADC"); // maybe future need to edit
 			}
 
 			String olOrDol = checkOlOrDol(aGlass, minOL, maxOL, minDOL, maxDOL);
-			if (olOrDol.equals("")) {
+			if (olOrDol == null) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "checkOlOrDol Error: orOrDol = null");
+				return null;
+			}if (olOrDol.equals("")) {
 				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "checkOlOrDol Error: orOrDol = -1");
+				return null;
+			}if (!olOrDol.equals("OL") && !olOrDol.equals("DOL")){
+				Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "checkOlOrDol: not OL or DOL");
 				return null;
 			}
 			aGlass.setOlOrDol(olOrDol); // both ADC & FDC is OL
@@ -375,10 +414,12 @@ public class ExpMeasGlass {
 			}			
 			aGlass.setRatio(autoFeedbackSetting.getRatio());
 
-			SimpleDateFormat simDateFormat = new SimpleDateFormat();
-			simDateFormat.applyPattern("yyyyMMdd HHmmssSSS");
-			Date eTime = simDateFormat.parse(csv.FetchValue("PDS_GLASS_DATA", "PreEnd_Time_1"));		
-			aGlass.setExposureTime(eTime.getTime());
+			String dateStr = csv.FetchValue("PDS_GLASS_DATA", "PreEnd_Time_1");
+			if (dateStr == null || dateStr.equals("")) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "csv fetch PDS_GLASS_DATA PreEnd_Time_1 Error");
+				return null;
+			}
+			aGlass.setExposureTime(Utility.dateStr2Date(dateStr).getTime());
 			
 			List<Vector2D> csvMeasPotList = getCsvMeasPointList(csv, "Coord_X", "Coord_Y", "OL01", "OL02");
 			if (csvMeasPotList == null) {
@@ -588,11 +629,11 @@ public class ExpMeasGlass {
 		Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "getCsvTrackInTime: find track in time Success");
 
 		long lastFdbkTime = 0;
-		FeedbackTime ft = FeedbackTime_CRUD.read(this.expID, "", this.expRcpID);
-		if (ft == null) {
-			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "checkIsDataVaild fail: cannot get info from Table FeedbackTime");
+		T_ArrayExpFeedbackHistory feedbackHistory = T_ArrayExpFeedbackHistory_CRUD.read(this);
+		if (feedbackHistory == null) {
+			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "checkIsDataVaild fail: cannot get info from Table T_ArrayExpFeedbackHistory");
 		}else {
-			lastFdbkTime = ft.getUpdateTime();
+			lastFdbkTime = feedbackHistory.getFeedback_Time();
 		}
 		
 		if(thisGlassTrackInTime < lastFdbkTime){
@@ -618,12 +659,18 @@ public class ExpMeasGlass {
 		Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "checkIsDataVaild success: data is vaild");
 		return true;
 	}
-	private void cleanTargetGlassSet(ExpMeasGlass aGlass){ // #need Test
-		boolean err = MeasureFileReader.DeleteAllFiles(aGlass.getMeasEqId(), aGlass.getMeasSubEqId(), aGlass.getMeasRcpID(), 
-				aGlass.getExpID(), "", aGlass.getExpRcpID());
+	private void cleanTargetGlassSet(ExpMeasGlass aGlass){ // need Test TODO
+		boolean err = T_ArrayExpContinueGlassSet_CRUD.delete(aGlass.getProductName(), 	
+															aGlass.getExpID(), 
+															aGlass.getExpRcpID(), 
+															aGlass.getMeasStepID(), 		
+															aGlass.getMeasRcpID(),  
+															aGlass.getAdcOrFdc(),
+															aGlass.getGlassID());
 		if (err == false) {
-			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "cleanTargetGlassSet Error: delete measureFileReader fail");
+			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "cleanTargetGlassSet Error: delete T_ArrayExpContinueGlassSet fail");
 		}
+		
 	}
 	
 	private long getMesTrackInTime(String GlassID, String expStepId, String expID){
@@ -652,4 +699,15 @@ public class ExpMeasGlass {
 		}
 		return trackInTimeLong.getTime();
 	}
+	
+	public void multipliedRatio(double ratio) {
+		
+		for(Vector2D vector2d: this.measPointList) {
+			vector2d.xValue *= ratio;
+			vector2d.yValue *= ratio;
+		}
+		
+		return;
+	}
+	
 }

@@ -129,8 +129,7 @@ public class MeasureFileReader extends Thread {
 	
 	
 
-	public static List<MeasureFileDataBase> GetAllFiles(String EqpId, String SubEqpId, String Recipe, String PreEqpId,
-			String PreSubEqpId, String PreRecipe) {
+	public static List<MeasureFileDataBase> GetAllFiles(String EqpId, String Recipe) {
 		List<MeasureFileDataBase> result = new ArrayList<MeasureFileDataBase>();
 		try {
 			Map<String, MeasureFileDataBase> tmp = new HashMap<String, MeasureFileDataBase>();
