@@ -88,7 +88,7 @@ public class CFCoater implements IFileData {
 
 			if (PSHPreFilter(data)) {
 				// store to waiting handle list
-				data.StoreFile("", "", "", PreEqpId1, PreSubEqpId1, PreRecipeNo);
+				//data.StoreFile("", "", "", PreEqpId1, PreSubEqpId1, PreRecipeNo);
 				cfg.setCurrent_Count(cfg.getCurrent_Count() + 1);
 
 				if (cfg.getCurrent_Count() >= cfg.getTotal_Count()) { // calculate

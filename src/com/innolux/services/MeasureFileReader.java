@@ -134,8 +134,7 @@ public class MeasureFileReader extends Thread {
 		List<MeasureFileDataBase> result = new ArrayList<MeasureFileDataBase>();
 		try {
 			Map<String, MeasureFileDataBase> tmp = new HashMap<String, MeasureFileDataBase>();
-			List<MeasureFileData> rowDataList = MeasureFileData_CRUD.read(EqpId, SubEqpId, Recipe, PreEqpId,
-					PreSubEqpId, PreRecipe);
+			List<MeasureFileData> rowDataList = MeasureFileData_CRUD.read(EqpId, Recipe);
 			for (MeasureFileData eachRow : rowDataList) {
 				String key = eachRow.getFileName();
 				if (tmp.containsKey(key)) {

@@ -31,8 +31,8 @@ public class RvDispatch implements ITibRvListener {
 
 					switch (pds.SubEquipment_ID) {
 					case "2CPAL130":
-					//case "2CPAL230":
-					//case "2CPAL330":
+					case "2CPAL230":
+					case "2CPAL330":
 						new PALR2R(pds).Excute();
 
 						break;
