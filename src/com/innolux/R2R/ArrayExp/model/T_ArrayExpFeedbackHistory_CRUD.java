@@ -16,7 +16,7 @@ public class T_ArrayExpFeedbackHistory_CRUD {
 	private static GenericDao<T_ArrayExpFeedbackHistory> T_ArrayExpFeedbackHistory_DAO = 
 			new JdbcGenericDaoImpl <T_ArrayExpFeedbackHistory> (GlobleVar.R2R_DB);
 	
-	public static boolean create(ExpMeasGlass aGlass, long feedbackTime){
+	public static boolean create(ExpMeasGlass aGlass, String operationMode, String feedbackUserStr){
 		try{
 			T_ArrayExpFeedbackHistory feedbackHistory = new T_ArrayExpFeedbackHistory();
 			
@@ -56,8 +56,41 @@ public class T_ArrayExpFeedbackHistory_CRUD {
 			}
 			feedbackHistory.setAdc_Or_Fdc(str1);		
 			
-			feedbackHistory.setFeedback_Time(feedbackTime);
+			str1 = aGlass.getOlOrDol();
+			if (str1 == null) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "create T_ArrayExpFeedbackHistory_CRUD Error: getOlOrDol = null");
+			}
+			feedbackHistory.setFeedback_Mode(str1);
 			
+			str1 = aGlass.getExpRcpName();
+			if (str1 == null) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "create T_ArrayExpFeedbackHistory_CRUD Error: getExpRcpName = null");
+			}
+			feedbackHistory.setExp_Rcp_Name(str1);
+			
+			str1 = aGlass.getExpStepID();
+			if (str1 == null) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "create T_ArrayExpFeedbackHistory_CRUD Error: getExpStepID = null");
+			}
+			feedbackHistory.setExp_Step_ID(str1);
+			
+			feedbackHistory.setFeedback_Time(System.currentTimeMillis());
+			feedbackHistory.setOperation_Mode(operationMode);
+			feedbackHistory.setFeedback_User_ID(feedbackUserStr);		
+			T_ArrayExpFeedbackHistory_DAO.save(feedbackHistory);
+			return true;
+		}catch(Exception e){
+			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, ToolUtility.StackTrace2String(e));
+			return false;
+		}
+		
+	}
+	public static boolean create(T_ArrayExpFeedbackHistory feedbackHistory){
+		try{
+			if (feedbackHistory == null) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "create T_ArrayExpFeedbackHistory error");
+				return false;
+			}
 			T_ArrayExpFeedbackHistory_DAO.save(feedbackHistory);
 		}catch(Exception e){
 			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, ToolUtility.StackTrace2String(e));
@@ -65,7 +98,6 @@ public class T_ArrayExpFeedbackHistory_CRUD {
 		}
 		return true;
 	}
-	
 	public static T_ArrayExpFeedbackHistory read(ExpMeasGlass aGlass){
 		String product = aGlass.getProductName();
 		String expId = aGlass.getExpID();
@@ -101,10 +133,10 @@ public class T_ArrayExpFeedbackHistory_CRUD {
 			}
 			List<T_ArrayExpFeedbackHistory> tmp = T_ArrayExpFeedbackHistory_DAO.findAllByConditions(sqlWhereMap, T_ArrayExpFeedbackHistory.class);
 			if (tmp == null) {
-				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "T_ArrayExpFeedbackHistory read Error: tmp = null");
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "T_ArrayExpFeedbackHistory read Error: result = null");
 				return null;
 			}else if (tmp.size() == 0) {
-				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "T_ArrayExpFeedbackHistory read Error: tmp.size = 0");
+				Utility.saveToLogHistoryDB(GlobleVar.LogDebugType, "T_ArrayExpFeedbackHistory read fail: result.size = 0");
 				return null;
 			}if (tmp.size() != 0) {
 				return tmp.get(0);

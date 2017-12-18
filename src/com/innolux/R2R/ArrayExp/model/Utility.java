@@ -1,7 +1,9 @@
 package com.innolux.R2R.ArrayExp.model;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
@@ -11,10 +13,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 
+import javax.xml.parsers.DocumentBuilder;
+
 import org.apache.log4j.Logger;
 
 import com.innolux.R2R.common.GlobleVar;
 import com.innolux.R2R.common.ToolUtility;
+
 import com.innolux.R2R.model.LogHistory;
 import com.innolux.R2R.model.LogHistory_CRUD;
 
@@ -25,10 +30,25 @@ public class Utility {
 	public static void main(String [] argv) {
 		
 		try {
-			String NikonX = String.format("%.2f", -999999.99);
-			System.out.println(NikonX);
+			String cmdStr = "cmd.exe /c echo hello" ;
+			Process proc = Runtime.getRuntime().exec(cmdStr);
+			proc.waitFor();
+			BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+			BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+			String s = null;
+			while ((s = stdInput.readLine()) != null) {
+				System.out.println(s);
+			}
+
+			// read any errors from the attempted command
+			while ((s = stdError.readLine()) != null) {
+				System.out.println(s);
+			}
+
+			
+
 		}catch(Exception e) {
-			 System.out.println(e.getMessage());
+			System.out.println(e.getMessage());
 		}
 	}
 	
@@ -44,26 +64,12 @@ public class Utility {
 		}
 	}
 	
-	public static int checkErrorAndLog(Object checkValue, Object errorValue, String errLevel, String errStr){
-		if (checkValue == null){
-			logger.error(errStr);
-			saveToLogHistoryDB(errLevel, errStr);
-			return -1;
-		}
-		else if(checkValue.equals(errorValue)){
-			logger.error(errStr);
-			saveToLogHistoryDB(errLevel, errStr);
-			return -1;
-		}
-		return 0;
-	}
-	
 	public static void saveToLogHistoryDB(String errLevel, String logString) {
 		LogHistory alogHisty = new LogHistory();
+		alogHisty.setR2R_Name("ArrayExp");
+		alogHisty.setTime(Calendar.getInstance().getTime().getTime());
 		alogHisty.setLevel(errLevel);
 		alogHisty.setLogString(logString);
-		alogHisty.setTime(Calendar.getInstance().getTime());
-		
 		LogHistory_CRUD.create(alogHisty);
 		return;
 	}

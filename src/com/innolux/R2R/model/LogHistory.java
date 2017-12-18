@@ -9,8 +9,11 @@ import com.innolux.services.ObjectAnalyzer;
 @Entity("Log_History") // 表名
 public class LogHistory {
 	
+	@Column("R2R_Name")
+	private String R2R_Name;
+	
 	@Column("TimeStamp")
-	private Date Time;
+	private long Time;
 
 	@Column("LogLevel")
 	private String Level;
@@ -18,11 +21,19 @@ public class LogHistory {
 	@Column("LogString")
 	private String LogString;
 	
-	public Date getTime() {
+	public String getR2R_Name() {
+		return R2R_Name;
+	}
+
+	public void setR2R_Name(String r2r_Name) {
+		R2R_Name = r2r_Name;
+	}
+
+	public long getTime() {
 		return Time;
 	}
 	
-	public void setTime(Date time) {
+	public void setTime(long time) {
 		Time = time;
 	}
 
