@@ -45,9 +45,11 @@ public class MeasureFileReader extends Thread {
 				for (int i = 0; i < listOfFiles.length; i++) {
 					try {
 						if (listOfFiles[i].isFile()) {
+							Thread.sleep(100);
 							ReadFile(listOfFiles[i].getPath(),listOfFiles[i].getName());
-
-							// listOfFiles[i].delete(); // for DEBUG use
+							if(!listOfFiles[i].delete()) {
+								logger.error("delete error:" + listOfFiles[i].getPath());
+							}
 
 						} else if (listOfFiles[i].isDirectory()) {
 
