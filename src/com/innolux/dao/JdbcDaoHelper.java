@@ -1,6 +1,5 @@
 package com.innolux.dao;
 
-import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -35,10 +34,7 @@ public class JdbcDaoHelper {
 	 */
 	private String URL = "";
 	
-	private class ConnectionInfo{
-		public long LastUseTime = 0;
-		public Connection conn = null;
-	}
+
 
 	public JdbcDaoHelper(String connectionStr, String User, String PWD, int maxConn) {
 		URL = connectionStr;
@@ -61,48 +57,49 @@ public class JdbcDaoHelper {
 	 * @return java.sql.Connection實例
 	 * @throws SQLException 
 	 */
-	public synchronized Connection getConnection() throws SQLException {
+	public synchronized ConnectionInfo getConnection() throws SQLException {
 		ConnectionInfo con = null;
+
 		if (connections.size() == 0) {
-			return DriverManager.getConnection(URL, USER, PASSWORD);
+			con = new ConnectionInfo();
+			con.conn = DriverManager.getConnection(URL, USER, PASSWORD);
+			con.CreateTime = System.currentTimeMillis();
+			return con;
 		} else {
 			int lastIndex = connections.size() - 1;
 			con = connections.remove(lastIndex);
-//			if(!con.conn.isValid(5)){
-//				try{
-//					con.conn.close();
-//				}catch(Exception e){
-//					logger.debug("getConnection() con.conn.close() has error, exception:" + ToolUtility.StackTrace2String(e));
-//				}
-//				con.conn = DriverManager.getConnection(URL, USER, PASSWORD);
-//			}
-			if(System.currentTimeMillis() - con.LastUseTime > 3600000){
-				try{
+
+			if (System.currentTimeMillis() - con.CreateTime > 3600000) {
+				try {
+
 					con.conn.close();
-				}catch(Exception e){
-					logger.debug("getConnection() con.conn.close() has error, exception:" + ToolUtility.StackTrace2String(e));
+				} catch (Exception e) {
+					logger.debug("getConnection() con.conn.close() has error, exception:"
+							+ ToolUtility.StackTrace2String(e));
 				}
 				con.conn = DriverManager.getConnection(URL, USER, PASSWORD);
+				con.CreateTime = System.currentTimeMillis();
 			}
 		}
-		return con.conn;
+
+		return con;
 	}
 
 	/**
 	 * 釋放數據庫資源
 	 */
-	public synchronized void release(Connection conn, PreparedStatement ps, ResultSet rs) {
+	public synchronized void release(ConnectionInfo con, PreparedStatement ps, ResultSet rs) {
 		try {
-			if (conn != null) {
+			if (con != null) {
+
 				if (connections.size() == max) {
-					conn.close();
-					conn = null;
+					con.conn.close();
+					con = null;
 				} else {
-					ConnectionInfo conInfo = new ConnectionInfo();
-					conInfo.conn = conn;
-					conInfo.LastUseTime = System.currentTimeMillis();
-					connections.add(conInfo);
+
+					connections.add(con);
 				}
+
 			}
 			if (ps != null) {
 				ps.close();
