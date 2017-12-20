@@ -5,50 +5,50 @@ import com.innolux.annotation.Entity;
 import com.innolux.annotation.Id;
 import com.innolux.services.ObjectAnalyzer;
 
-@Entity("CfCoater_False_Range_Setting") // 表名
+@Entity("CfCoater_Param_Setting") // 表名
 public class Coater_Param_Setting {
 	@Id("PPID")
 	private String PPID;
-	
+
 	@Column("Recipe_No")
-	private int Recipe_No;
-	
+	private String Recipe_No;
+
 	@Column("Dry_Thinkness")
 	private double Dry_Thinkness;
-	
+
 	@Column("Solid_Density")
 	private double Solid_Density;
-	
+
 	@Column("T3_Cot_parameter")
 	private double T3_Cot_parameter;
-	
+
 	@Column("Cot_Start_Diff")
 	private double Cot_Start_Diff;
-	
+
 	@Column("BETA_Cot_parameter")
 	private double BETA_Cot_parameter;
-	
+
 	@Column("Cot_Mid_Diff")
 	private double Cot_Mid_Diff;
-	
+
 	@Column("PDT_Cot_parameter")
 	private double PDT_Cot_parameter;
-	
-	@Column("Cot_End_Diff")
-	private double Cot_End_Diff;
-	
+
+	@Column("PDT_Cot_End_Diff")
+	private double PDT_Cot_End_Diff;
+
 	@Column("Squeegee_L_Cot_parameter")
 	private double Squeegee_L_Cot_parameter;
-	
-//	@Column("Cot_End_Diff")
-//	private double Cot_End_Diff;
-	
+
+	@Column("SQ_Cot_End_Diff")
+	private double SQ_Cot_End_Diff;
+
 	@Column("Beta_Coff_For_Cot_Start")
 	private double Beta_Coff_For_Cot_Start;
-	
+
 	@Column("Beta_Coff_For_Cot_End")
 	private double Beta_Coff_For_Cot_End;
-	
+
 	public String getPPID() {
 		return PPID;
 	}
@@ -57,11 +57,11 @@ public class Coater_Param_Setting {
 		PPID = pPID;
 	}
 
-	public int getRecipe_No() {
+	public String getRecipe_No() {
 		return Recipe_No;
 	}
 
-	public void setRecipe_No(int recipe_No) {
+	public void setRecipe_No(String recipe_No) {
 		Recipe_No = recipe_No;
 	}
 
@@ -121,12 +121,12 @@ public class Coater_Param_Setting {
 		PDT_Cot_parameter = pDT_Cot_parameter;
 	}
 
-	public double getCot_End_Diff() {
-		return Cot_End_Diff;
+	public double getPDT_Cot_End_Diff() {
+		return PDT_Cot_End_Diff;
 	}
 
-	public void setCot_End_Diff(double cot_End_Diff) {
-		Cot_End_Diff = cot_End_Diff;
+	public void setPDT_Cot_End_Diff(double pDT_Cot_End_Diff) {
+		PDT_Cot_End_Diff = pDT_Cot_End_Diff;
 	}
 
 	public double getSqueegee_L_Cot_parameter() {
@@ -135,6 +135,14 @@ public class Coater_Param_Setting {
 
 	public void setSqueegee_L_Cot_parameter(double squeegee_L_Cot_parameter) {
 		Squeegee_L_Cot_parameter = squeegee_L_Cot_parameter;
+	}
+
+	public double getSQ_Cot_End_Diff() {
+		return SQ_Cot_End_Diff;
+	}
+
+	public void setSQ_Cot_End_Diff(double sQ_Cot_End_Diff) {
+		SQ_Cot_End_Diff = sQ_Cot_End_Diff;
 	}
 
 	public double getBeta_Coff_For_Cot_Start() {

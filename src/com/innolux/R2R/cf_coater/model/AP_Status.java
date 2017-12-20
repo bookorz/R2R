@@ -1,10 +1,11 @@
 package com.innolux.R2R.cf_coater.model;
 
 import com.innolux.annotation.Column;
+import com.innolux.annotation.Entity;
 import com.innolux.annotation.Id;
 import com.innolux.services.ObjectAnalyzer;
 
-
+@Entity("CfCoater_AP_Status") // 表名
 public class AP_Status {
 	@Id("PrimaryKey")
 	private String PrimaryKey;

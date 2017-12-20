@@ -24,6 +24,7 @@ public class ToolUtility {
 	}
 	
 	public static String demical2Hex(double value, double rate , String R2R_ID) {
+		
 		String result = "";
 		int intVal = 0;
 		value = value / rate;
@@ -42,12 +43,16 @@ public class ToolUtility {
 			logger.debug("Run to run ID:" + R2R_ID + " demical2Hex value:" + value + " rate:" + rate + " result:"
 					+ result);
 		} else {
+			while (result.length() < 8) {
+				result = "0" + result;
+			}
 			logger.error("Run to run ID:" + R2R_ID + " demical2Hex return nothing value:" + value + " rate:"
 					+ rate + " result:" + result);
 			result = "";
 		}
 
 		return result;
+		
 	}
 
 	

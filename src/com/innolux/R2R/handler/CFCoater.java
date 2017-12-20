@@ -1,6 +1,7 @@
 package com.innolux.R2R.handler;
 
 import java.math.BigDecimal;
+import java.util.Calendar;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -8,6 +9,8 @@ import org.apache.log4j.Logger;
 import com.innolux.R2R.bc.BC;
 import com.innolux.R2R.cf_coater.model.AP_Status;
 import com.innolux.R2R.cf_coater.model.AP_Status_CRUD;
+import com.innolux.R2R.cf_coater.model.CfCoater_Feedback_History;
+import com.innolux.R2R.cf_coater.model.CfCoater_Feedback_History_CRUD;
 import com.innolux.R2R.cf_coater.model.Coater_PDS_Data;
 import com.innolux.R2R.cf_coater.model.Coater_PDS_Data_CRUD;
 import com.innolux.R2R.cf_coater.model.Coater_Param_Setting;
@@ -208,6 +211,10 @@ public class CFCoater implements IFileData {
 		double T3New = 0;
 		double PDTNew = 0;
 		double SqueegeNew = 0;
+		String Q2NewHex = "";
+		String T3NewHex = "";
+		String PDTNewHex = "";
+		String SqueegeNewHex = "";
 		
 		try {
 			List<Glass_Sammury_Data> glassList = Glass_Sammury_Data_CRUD.read(summary.getPreEqpId(),
@@ -217,6 +224,7 @@ public class CFCoater implements IFileData {
 			summary.setMid_Avg(0);
 			summary.setEnd_Avg(0);
 			for (Glass_Sammury_Data eachGlass : glassList) {
+				logger.debug("EachGlass:" + eachGlass);
 				summary.setStart_Avg(summary.getStart_Avg() + eachGlass.getStart_Avg());
 				summary.setMid_Avg(summary.getMid_Avg() + eachGlass.getMid_Avg());
 				summary.setEnd_Avg(summary.getEnd_Avg() + eachGlass.getEnd_Avg());
@@ -261,8 +269,8 @@ public class CFCoater implements IFileData {
 				BetaOffset = -1.0 * ((summary.getMid_Avg() - summary.getStart_Avg()) / CoaterSetting.getCot_Mid_Diff())
 						* CoaterSetting.getBETA_Cot_parameter();
 				// 四捨五入到小數點下四位
-				BetaOffset = new BigDecimal(BetaOffset).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
-
+				//BetaOffset = new BigDecimal(BetaOffset).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
+				logger.debug("BetaOffset:" + BetaOffset);
 				// BetaOffset end
 
 				// T3Offset begin
@@ -272,58 +280,112 @@ public class CFCoater implements IFileData {
 						- summary.getTatget() * CoaterSetting.getT3_Cot_parameter()
 								/ CoaterSetting.getCot_Start_Diff());
 				// 四捨五入到小數點下四位
-				T3Offset = new BigDecimal(T3Offset).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
+				//T3Offset = new BigDecimal(T3Offset).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
+				logger.debug("T3Offset:" + T3Offset);
 				// T3Offset end
 
 				// PDTOffset begin
 				PDTOffset = -1.0 * ((summary.getEnd_Avg() + (BetaOffset * CoaterSetting.getCot_Mid_Diff()
 						* CoaterSetting.getBeta_Coff_For_Cot_End() / CoaterSetting.getBETA_Cot_parameter())
 						- summary.getTatget()) * CoaterSetting.getPDT_Cot_parameter()
-						/ CoaterSetting.getCot_End_Diff());
+						/ CoaterSetting.getPDT_Cot_End_Diff());
 				// 四捨五入到小數點下四位
-				PDTOffset = new BigDecimal(PDTOffset).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
+				//PDTOffset = new BigDecimal(PDTOffset).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
+				logger.debug("PDTOffset:" + PDTOffset);
 				// PDTOffset end
 
 				// SqueegeOffset begin
 				SqueegeOffset = -1.0 * ((summary.getEnd_Avg() + (BetaOffset * CoaterSetting.getCot_Mid_Diff()
 						* CoaterSetting.getBeta_Coff_For_Cot_End() / CoaterSetting.getBETA_Cot_parameter())
 						- summary.getTatget()) * CoaterSetting.getSqueegee_L_Cot_parameter()
-						/ CoaterSetting.getCot_End_Diff());
+						/ CoaterSetting.getSQ_Cot_End_Diff());
 				// 四捨五入到小數點下四位
-				SqueegeOffset = new BigDecimal(SqueegeOffset).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
+				//SqueegeOffset = new BigDecimal(SqueegeOffset).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
+				logger.debug("SqueegeOffset:" + SqueegeOffset);
 				// SqueegeOffset end
 				
 				//BetaOld begin
 				BetaOld=10.0*CoaterPds.getDis_Spd_Q2()*CoaterSetting.getSolid_Density()/CoaterPds.getCoatSpd_V1()/CoaterPds.getCoating_W()/CoaterSetting.getDry_Thinkness();
 				// 四捨五入到小數點下四位
-				BetaOld = new BigDecimal(BetaOld).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
+				//BetaOld = new BigDecimal(BetaOld).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
+				logger.debug("BetaOld:" + BetaOld);
 				//BetaOld end
-				
+				//-------------------------------------補植----------------------------------------
 				//Q2New begin
 				Q2New = (BetaOld+BetaOffset)*CoaterPds.getCoatSpd_V1()*CoaterPds.getCoating_W()*CoaterSetting.getDry_Thinkness()/10/CoaterSetting.getSolid_Density();
 				// 四捨五入到小數點下四位
 				Q2New = new BigDecimal(Q2New).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
+				logger.debug("Q2New:" + Q2New);
+				Q2NewHex = ToolUtility.demical2Hex(Q2New, 0.001, "CfCoater");
+				logger.debug("Q2NewHex:" + Q2NewHex);
+				if(Q2NewHex.length()>=4){
+					result.StoreRegulation(1,Q2NewHex);
+				}else{
+					result.StoreRegulation(1, Q2NewHex.substring(4, 8));
+					result.StoreRegulation(2, Q2NewHex.substring(0, 4));
+				}
 				//Q2New end
 				
 				//T3New begin
 				T3New = CoaterPds.getAfterDis_T3()+T3Offset;
 				// 四捨五入到小數點下四位
 				T3New = new BigDecimal(T3New).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
+				logger.debug("T3New:" + T3New);
+				T3NewHex = ToolUtility.demical2Hex(T3New, 0.001, "CfCoater");
+				logger.debug("T3NewHex:" + T3NewHex);
+				if(T3NewHex.length()>=4){
+					result.StoreRegulation(3,T3NewHex);
+				}else{
+					result.StoreRegulation(3, T3NewHex.substring(4, 8));
+					result.StoreRegulation(4, T3NewHex.substring(0, 4));
+				}
 				//T3New end
 				
 				//PDTNew begin
 				PDTNew=CoaterPds.getPumpDecel_T() + PDTOffset;
 				// 四捨五入到小數點下四位
 				PDTNew = new BigDecimal(PDTNew).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
+				logger.debug("PDTNew:" + PDTNew);
+				PDTNewHex = ToolUtility.demical2Hex(PDTNew, 0.001, "CfCoater");
+				logger.debug("PDTNewHex:" + PDTNewHex);
+				if(PDTNewHex.length()>=4){
+					result.StoreRegulation(5,PDTNewHex);
+				}else{
+					result.StoreRegulation(5, PDTNewHex.substring(4, 8));
+					result.StoreRegulation(6, PDTNewHex.substring(0, 4));
+				}
 				//PDTNew end
 				
 				//SqueegeNew begin
 				SqueegeNew = CoaterPds.getSqueegee_L()+SqueegeOffset;
+				// 四捨五入到小數點下四位
+				SqueegeNew = new BigDecimal(SqueegeNew).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
+				logger.debug("SqueegeNew:" + SqueegeNew);
+				SqueegeNewHex = ToolUtility.demical2Hex(SqueegeNew, 0.001, "CfCoater");
+				logger.debug("SqueegeNewHex:" + SqueegeNewHex);
+				if(SqueegeNewHex.length()>=4){
+					result.StoreRegulation(7,SqueegeNewHex);
+				}else{
+					result.StoreRegulation(7, SqueegeNewHex.substring(4, 8));
+					result.StoreRegulation(8, SqueegeNewHex.substring(0, 4));
+				}
 				//SqueegeNew end
+				//-------------------------------------補植----------------------------------------
+				
+				CfCoater_Feedback_History history = new CfCoater_Feedback_History();
+				history.setSubEqpId(summary.getPreEqpId());
+				history.setPPID(summary.getPPID());
+				history.setUser_Id("Auto");
+				history.setFeedBack_Time(Calendar.getInstance().getTime());
+				history.setFeedback_Value("Q2New:" +Q2New +" T3New:" +T3New+" PDTNew:" + PDTNew+"SqueegeNew:" +SqueegeNew);
+				
+				CfCoater_Feedback_History_CRUD.create(history);
+
 			}
 
 		} catch (Exception e) {
 			logger.error(ToolUtility.StackTrace2String(e));
+			result = new RegulationCollection();
 		}
 		return result;
 	}
@@ -334,9 +396,9 @@ public class CFCoater implements IFileData {
 
 			Measure_point_Setting mp = Measure_point_Setting_CRUD.read(data.FetchValue("GLASS_DATA", "RECIPE_ID"));
 			if (mp != null) {
-				String[] start_Col = mp.getEngage_Col().split(",");
-				String[] mid_Col = mp.getPlunge_Col().split(",");
-				String[] end_Col = mp.getRetract_COl().split(",");
+				String[] start_Col = mp.getStart_Col().split(",");
+				String[] mid_Col = mp.getMid_Col().split(",");
+				String[] end_Col = mp.getEnd_COl().split(",");
 
 				for (String SiteName : start_Col) {
 					summary.setStart_Avg(summary.getStart_Avg()
