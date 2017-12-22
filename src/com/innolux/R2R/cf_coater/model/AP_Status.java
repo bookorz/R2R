@@ -17,10 +17,6 @@ public class AP_Status {
 	private long Last_Time;
 	@Column("Current_Count")
 	private int Current_Count;
-	@Column("Total_Count")
-	private int Total_Count;
-	@Column("Expire_Interval_Time")
-	private long Expire_Interval_Time;
 	
 	public String getPrimaryKey() {
 		return PrimaryKey;
@@ -60,22 +56,6 @@ public class AP_Status {
 
 	public void setCurrent_Count(int current_Count) {
 		Current_Count = current_Count;
-	}
-
-	public int getTotal_Count() {
-		return Total_Count;
-	}
-
-	public void setTotal_Count(int total_Count) {
-		Total_Count = total_Count;
-	}
-
-	public long getExpire_Interval_Time() {
-		return Expire_Interval_Time;
-	}
-
-	public void setExpire_Interval_Time(long expire_Interval_Time) {
-		Expire_Interval_Time = expire_Interval_Time;
 	}
 
 	@Override

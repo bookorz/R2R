@@ -23,14 +23,14 @@ public class PPID {
 	 * BC line number
 	 */
 	@Column("bclineno")
-	private String LineNo;
+	private String BCLineNo;
 
-	public String getLineNo() {
-		return LineNo;
+	public String getBCLineNo() {
+		return BCLineNo;
 	}
 
-	public void setLineNo(String LineNo) {
-		this.LineNo = LineNo;
+	public void setBCLineNo(String BCLineNo) {
+		this.BCLineNo = BCLineNo;
 	}
 
 	/**

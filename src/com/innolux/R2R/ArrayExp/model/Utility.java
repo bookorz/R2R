@@ -95,7 +95,7 @@ public class Utility {
 	public static void saveToLogHistoryDB(String errLevel, String logString) {
 		LogHistory alogHisty = new LogHistory();
 		alogHisty.setR2R_Name("ArrayExp");
-		alogHisty.setTime(String.valueOf(Calendar.getInstance().getTime().getTime()));
+		alogHisty.setTime(System.currentTimeMillis()+"");
 		alogHisty.setLevel(errLevel);
 		alogHisty.setLogString(logString);
 		LogHistory_CRUD.create(alogHisty);

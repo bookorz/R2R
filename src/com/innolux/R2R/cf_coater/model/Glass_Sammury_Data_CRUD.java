@@ -25,16 +25,16 @@ public class Glass_Sammury_Data_CRUD {
 		return result;
 	}
 	
-	public static List<Glass_Sammury_Data> read(String EqpId,String RecipeNo){
+	public static List<Glass_Sammury_Data> read(String PreEqpId,String PPID){
 		List<Glass_Sammury_Data> result = null;
 		try{
 			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
 
-			if(!EqpId.equals("")){
-				sqlWhereMap.put("EqpId", EqpId);
+			if(!PreEqpId.equals("")){
+				sqlWhereMap.put("PreEqpId", PreEqpId);
 			}
-			if(!RecipeNo.equals("")){
-				sqlWhereMap.put("Recipe_No", RecipeNo);
+			if(!PPID.equals("")){
+				sqlWhereMap.put("PPID", PPID);
 			}
 			
 			result = Glass_Sammury_Data_Dao.findAllByConditions(sqlWhereMap, Glass_Sammury_Data.class);
@@ -45,17 +45,17 @@ public class Glass_Sammury_Data_CRUD {
 		return result;
 	}	
 	
-	public static boolean delete(String EqpId,String RecipeNo){
+	public static boolean delete(String PreEqpId,String PPID){
 		
 		try{
 			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
 
-			if(!EqpId.equals("")){
-				sqlWhereMap.put("EqpId", EqpId);
+			if(!PreEqpId.equals("")){
+				sqlWhereMap.put("PreEqpId", PreEqpId);
 			}
 		
-			if(!RecipeNo.equals("")){
-				sqlWhereMap.put("Recipe_No", RecipeNo);
+			if(!PPID.equals("")){
+				sqlWhereMap.put("PPID", PPID);
 			}
 			
 			

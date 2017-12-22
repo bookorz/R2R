@@ -13,13 +13,13 @@ import com.innolux.R2R.handler.RvDispatch;
 
 public class R2R_Main {
 	public static void main(String[] args) {
-		//System.out.print(Integer.valueOf(String.valueOf(-5), 16).toString());
-		//ReportMonitor();
+	
+		ReportMonitor();
 //		
-		//new RvDispatch().StartListen("tcp:8585", "INNOLUX.T2.PROD.PDS.PDSGLASSSEND.CELL.>", "8585", "");
+		new RvDispatch().StartListen("tcp:8585", "INNOLUX.T2.PROD.PDS.PDSGLASSSEND.CELL.>", "8585", "");
 		//new RvDispatch().StartListen("tcp:8585", "INNOLUX.T2.PROD.PDS.PDSGLASSSEND.CF.>", "8585", "");
 		//new ArrayExp("C:\\AryExp\\");
-		new CFCoater("C:\\PSH\\","C:\\NG\\");
+		
 	}
 
 	private static void ReportMonitor() {

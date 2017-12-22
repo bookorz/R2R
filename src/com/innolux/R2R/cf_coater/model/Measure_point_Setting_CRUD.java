@@ -11,12 +11,12 @@ public class Measure_point_Setting_CRUD {
 	private static Logger logger = Logger.getLogger(Measure_point_Setting_CRUD.class);
 	private static GenericDao<Measure_point_Setting> Measure_point_Setting_Dao = new JdbcGenericDaoImpl<Measure_point_Setting>(GlobleVar.R2R_DB);
 	
-	public static Measure_point_Setting read(String RecipeNo){
+	public static Measure_point_Setting read(String PPID){
 		Measure_point_Setting result = null;
 		try{
 			
 			
-			Measure_point_Setting_Dao.get(RecipeNo, Measure_point_Setting.class);
+			result = Measure_point_Setting_Dao.get(PPID, Measure_point_Setting.class);
 			
 		}catch(Exception e){
 			logger.error(ToolUtility.StackTrace2String(e));

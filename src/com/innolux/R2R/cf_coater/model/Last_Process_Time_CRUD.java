@@ -16,6 +16,17 @@ public class Last_Process_Time_CRUD {
 	private static Logger logger = Logger.getLogger(MeasureFileData_CRUD.class);
 	private static GenericDao<Last_Process_Time> Last_Process_Time_Dao = new JdbcGenericDaoImpl<Last_Process_Time>(GlobleVar.R2R_DB);
 	
+	public static boolean create(Last_Process_Time t){
+		boolean result = false;
+		try{
+			Last_Process_Time_Dao.save(t);
+			result = true;
+		}catch(Exception e){
+			logger.error(ToolUtility.StackTrace2String(e));
+		}
+		return result;
+	}
+	
 	public static Last_Process_Time read(String SubEqpId, String RecipeNo){
 		Last_Process_Time result = null;
 		try{
