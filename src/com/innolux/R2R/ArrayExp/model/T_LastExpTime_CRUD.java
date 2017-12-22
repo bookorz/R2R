@@ -63,4 +63,17 @@ public class T_LastExpTime_CRUD {
 		}
 		return true;
 	}
+	
+	public static boolean delete(){
+		try{
+			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
+
+			T_LastExpTime_DAO.deleteAllByConditions(sqlWhereMap, T_LastExpTime.class);
+			return true;
+		}catch(Exception e){
+			logger.error(ToolUtility.StackTrace2String(e));
+			return false;
+		}
+
+	}
 }

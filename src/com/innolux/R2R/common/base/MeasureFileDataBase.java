@@ -247,13 +247,10 @@ public class MeasureFileDataBase {
 		Iterator<String> iter = key1List.iterator();
 		while(iter.hasNext()) {
 			String element = (String)iter.next();
-			if(!element.equals("") && !element.equals("0")) {
-				return key1List.indexOf(element);
-			}
+			if (element.equals("")) continue;
+			if (Double.parseDouble(element) == 0) continue;
+			return key1List.indexOf(element);
 		}
 		return -1;
-	}
-	
-	
-	
+	}	
 }

@@ -3,6 +3,7 @@ package com.innolux.R2R.handler;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
@@ -10,18 +11,24 @@ import java.util.List;
 
 
 import org.apache.log4j.Logger;
+
+import com.innolux.R2R.ArrayExp.model.Arith;
 import com.innolux.R2R.ArrayExp.model.ExpMeasGlass;
 import com.innolux.R2R.ArrayExp.model.T_ArrayExpContinueGlassSet;
 import com.innolux.R2R.ArrayExp.model.T_ArrayExpContinueGlassSet_CRUD;
 import com.innolux.R2R.ArrayExp.model.T_ArrayExpFeedbackHistory_CRUD;
 import com.innolux.R2R.ArrayExp.model.T_AutoFeedbackSetting;
 import com.innolux.R2R.ArrayExp.model.T_AutoFeedbackSetting_CRUD;
+import com.innolux.R2R.ArrayExp.model.T_CanonExpSiteNo2ScanNo;
+import com.innolux.R2R.ArrayExp.model.T_CanonExpSiteNo2ScanNo_CRUD;
+import com.innolux.R2R.ArrayExp.model.T_LastExpTime_CRUD;
 import com.innolux.R2R.ArrayExp.model.Utility;
 import com.innolux.R2R.ArrayExp.model.Vector2D;
 import com.innolux.R2R.common.GlobleVar;
 import com.innolux.R2R.common.ToolUtility;
 import com.innolux.R2R.common.base.MeasureFileDataBase;
 import com.innolux.R2R.interfaces.IFileData;
+import com.innolux.R2R.model.LogHistory_CRUD;
 import com.innolux.services.MeasureFileReader;
 
 public class ArrayExp implements IFileData{
@@ -44,8 +51,17 @@ public class ArrayExp implements IFileData{
 	@Override
 	public void onFileData (MeasureFileDataBase csv) {
 		try {
-			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "Start process file " + csv.getFileName());
 			
+			if (Utility.DEBUG == true) { // DEBUG use 
+				Utility.DEBUG = false;
+				T_ArrayExpContinueGlassSet_CRUD.delete("", "", "", "", "", "", "");
+				T_LastExpTime_CRUD.delete();
+				T_ArrayExpFeedbackHistory_CRUD.delete();
+				LogHistory_CRUD.delete();
+			}
+			
+			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "Start process file " + csv.getFileName());
+						
 			// when receive a csv 
 			ExpMeasGlass emGlass = ExpMeasGlass.csv2ExpMeasGlass(csv);
 			if (emGlass == null) {
@@ -113,9 +129,12 @@ public class ArrayExp implements IFileData{
 				}else Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "creatNikonFeedbackFile success");
 				String cmdStr = "cmd /c start " ;
 				String workingDirectory = System.getProperty("user.dir");
-				cmdStr += workingDirectory;
-				cmdStr += "\\DPS2.exe ";
-				cmdStr += "\"" + averageGlass.getExpID() + "\" \"" + averageGlass.getExpRcpName() + "\""; 
+				cmdStr += workingDirectory + "\\DPS2.exe ";
+				cmdStr += "\"" + averageGlass.getExpID() + "\" \"" + averageGlass.getExpRcpName() + "\"";
+				if (averageGlass.getOlOrDol().equals("OL"))
+					cmdStr += " \"0\"";
+				if (averageGlass.getOlOrDol().equals("DOL"))
+					cmdStr += " \"2\"";
 				Process process = Runtime.getRuntime().exec(cmdStr);
 				process.waitFor();
 				int exitVal = process.exitValue();
@@ -125,8 +144,13 @@ public class ArrayExp implements IFileData{
 				}
 				Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "DPS create rv5 file success");
 			}else if(emGlass.getExpSupplier().toUpperCase().equals("CANON")){
-//				feedbackFile = createCanonFeedbackFile(emGlass);
-//				sendFdbkFile2Nanon(feedbackFile);
+				int intState = createCanonFeedbackFile(emGlass);
+				if (intState == -1) {
+					Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Error: creatNikonFeedbackFile fail");
+					return;
+				}else Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "creatNikonFeedbackFile success");
+
+				// sendFdbkFile2Nanon(feedbackFile); // TODO
 			}
 			
 			// save feedback history to DB
@@ -140,7 +164,55 @@ public class ArrayExp implements IFileData{
 			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, ToolUtility.StackTrace2String(e));
 			return;
 		}
-	}	
+	}
+	private int createCanonFeedbackFile(ExpMeasGlass emGlass) {
+		String timeStamp = new SimpleDateFormat("yyyyMMddHHmmss").format(Calendar.getInstance().getTime());
+		String feedbackFileName = emGlass.getGlassID() + "_" + emGlass.getMeasStepID() + "_" + 
+								  emGlass.getExpID() + "_" + emGlass.getMeasEqId() + "_" +
+								  emGlass.getMeasRcpID() + "_" + timeStamp;
+		try {
+			// DEBUG use
+			PrintWriter writer = new PrintWriter("C:\\" + feedbackFileName + ".csv", "UTF-8");
+			// PrintWriter writer = new PrintWriter("Y:\\" + emGlass.getExpID() + "\\" + feedbackFileName + ".csv", "UTF-8");
+			writer.println( "Recipe ,No.," + emGlass.getExpRcpID() ); //emGlass.getExpRcpName()
+			writer.println( "Glass ID," + emGlass.getGlassID() );
+			
+			writer.println( "Insp. Date," + timeStamp );
+			int pointNum = emGlass.getMeasPointList().size();
+			writer.println("MeasPoint," + pointNum);
+			for(int pInd = 1; pInd <= pointNum; pInd++) {
+				// Canon X = MCD X
+				// Canon Y = MCD Y
+				Vector2D point = emGlass.getMeasPointList().get(pInd - 1);
+				String CanonX = String.format("%f", point.getxAxis());
+				String CanonY = String.format("%f", point.getyAxis());
+				String CanonOL01 = String.format("%.3f", point.getxValue());
+				String CanonOL02 = String.format("%.3f", point.getyValue());
+				List<T_CanonExpSiteNo2ScanNo> siteNo2ScanNoList = T_CanonExpSiteNo2ScanNo_CRUD.read(emGlass.getProductName(), emGlass.getExpStepID());																		 			
+				if (siteNo2ScanNoList == null) {
+					Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "createCanonFeedbackFile Error: cannot read T_CanonExpSiteNo2ScanNo");
+					return -1; 
+				}
+				int scanNo = -1;
+				for (T_CanonExpSiteNo2ScanNo siteNo2ScanNo: siteNo2ScanNoList) {
+					scanNo = siteNo2ScanNo.findScanNo(pInd);
+					if (scanNo != -1) break;
+				}
+				if (scanNo == -1){
+					Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "createCanonFeedbackFile Error: no siteNo T_CanonExpSiteNo2ScanNo");
+					return -1; 
+				}
+				String CanonScanNo = String.valueOf(scanNo);
+				writer.println(pInd + "," + CanonX + "," + CanonY + "," + CanonOL01 + "," + CanonOL02 + "," + CanonScanNo);
+			}
+			writer.println("<EOF>");
+			writer.close();
+
+		}catch(Exception e) {
+			System.out.println(e.getMessage());
+		}
+		return -1;
+	}
 	private int creatNikonFeedbackFile(ExpMeasGlass averageGlass) {
 		String feedbackFileName = averageGlass.getExpID() + "@" + averageGlass.getExpRcpName() + "@@@" + "01" + ".mv5";
 		try {
@@ -207,11 +279,11 @@ public class ArrayExp implements IFileData{
 		for(int pInd = 0; pInd < pointNum; pInd ++) {
 			double xResult = 0, yResult = 0;
 			for(List<Vector2D> vecterList: vetorListList) {
-				xResult += vecterList.get(pInd).getxValue();
-				yResult += vecterList.get(pInd).getyValue();
+				xResult = Arith.add(xResult, vecterList.get(pInd).getxValue());
+				yResult = Arith.add(yResult, vecterList.get(pInd).getyValue());
 			}
-			xResult /= vetorListList.size(); 
-			yResult /= vetorListList.size();
+			xResult = Arith.div(xResult, vetorListList.size(), 4);
+			yResult = Arith.div(yResult, vetorListList.size(), 4);
 			Vector2D vector2d = vetorListList.get(0).get(pInd);
 			Vector2D aPoint = new Vector2D(vector2d.getxAxis(), vector2d.getyAxis(), xResult, yResult);
 			avgPointList.add(aPoint);
@@ -290,11 +362,11 @@ public class ArrayExp implements IFileData{
 			}
 		}
 		
-		// check each of them if it match feedback condition
+		// check each of them if it matches feedback condition
 		List<Integer> matchGlassList = new ArrayList<>();
 		for(int ind = 0; ind < latestExpGlassList.size(); ind++){
-			if (latestExpGlassList.get(ind).getFeedbackMode().equals( aGlass.getOlOrDol() ) &&
-				latestExpGlassList.get(ind).getAdcOrFdc().equals( aGlass.getAdcOrFdc() )){
+			if (latestExpGlassList.get(ind).getFeedbackMode().toUpperCase().equals( aSetting.getFeedbackMode().toUpperCase() ) &&
+				latestExpGlassList.get(ind).getAdcOrFdc().toUpperCase().equals( aSetting.getAdcOrFdc().toUpperCase() )){
 				matchGlassList.add(ind);
 			}
 		}
@@ -302,79 +374,64 @@ public class ArrayExp implements IFileData{
 			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "checkStartFeedback: matchGlassList.size < aSetting.getSampleSize");
 			return null;
 		}
-		List<T_ArrayExpContinueGlassSet> returnGlassList = new ArrayList<>();
-		if (aSetting.getActiveRule().equals("RANDOM")) {
-			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "checkStartFeedback: need Feedback");
-			for (int glassInd = 0; glassInd < aSetting.getSampleSize(); glassInd++) {
-				int matchGlassInd = matchGlassList.get(glassInd);
-				T_ArrayExpContinueGlassSet matchGlass = latestExpGlassList.get(matchGlassInd);
-				returnGlassList.add(matchGlass);
-			}
-			int state = checkSigmaSmallerSetting(returnGlassList, aSetting.getSigma());
-			if (state == -1) {
-				//error
-				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "checkSigmaSmallerSetting Error");
-				return null;
-			}
-			if (state == 0) {
-				 //not ok
-				Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "checkSigmaSmallerSetting: sigma >= setting");
-				return null;
-			}
-			if (state == 1) {
-				// OK
-				Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "checkSigmaSmallerSetting: sigma < setting");
-				return returnGlassList;
-			}
-			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "checkSigmaSmallerSetting fatal Error");
-			return null; // should not be here since there are return in three case
-		}
-		if (!aSetting.getActiveRule().equals("CONTINUE")) {
-			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "checkStartFeedback Error: ActiveRule is not CONTINUE or RANDOM");
+		
+		// active rule
+		if (!aSetting.getActiveRule().toUpperCase().equals("RANDOM") && 
+			!aSetting.getActiveRule().toUpperCase().equals("CONTINUE")) {
+			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "checkStartFeedback: active rule != RANDOM or CONTINUE");
 			return null;
 		}
-		// check case of "continue" active rule
-		Collections.sort(matchGlassList,
-			new Comparator<Integer>() {
-			public int compare(Integer o1, Integer o2) {
-				return o1 - o2;
+		
+		// prepare combination
+		List<List<Integer>> elementList = new ArrayList<List<Integer>>();
+		for (int ind = 0; ind < matchGlassList.size(); ind++) {
+			elementList.add(Arrays.asList(matchGlassList.get(ind)));
+		}
+		elementList.sort(new Comparator<List<Integer>>() {
+			public int compare(List<Integer> l1, List<Integer> l2) {
+				return l1.get(0) - l2.get(0);
 			}
 		});
-		for (int glassInd = 0; glassInd <= matchGlassList.size() - aSetting.getSampleSize(); glassInd++) {
-			int ele1 = matchGlassList.get(glassInd);
-			int ind2, continueCount;
-			for (ind2 = 0, continueCount = 0; ind2 < aSetting.getSampleSize(); ind2++) {
-				if ((ele1 + ind2) != matchGlassList.get(glassInd + ind2)) {
-					break;
+
+		List<List<Integer>> allCombinList = Utility.combination(elementList, aSetting.getSampleSize());
+		for (List<Integer> combinList: allCombinList) {
+			if (aSetting.getActiveRule().toUpperCase().equals("CONTINUE")) {
+				// check if it is continue;
+				int isContinue = 1;
+				for (int ind = 0; ind < combinList.size(); ind++) {
+					if (combinList.get(0) + ind != combinList.get(ind)) {
+						isContinue = 0;
+						break;
+					}
 				}
-				continueCount++;
+				if(isContinue == 0) continue;			
 			}
-			if (continueCount == aSetting.getSampleSize()) {
-				returnGlassList = latestExpGlassList.subList(glassInd, glassInd + aSetting.getSampleSize() - 1);
-				int state = checkSigmaSmallerSetting(returnGlassList, aSetting.getSigma());
-				if (state == -1) {
-					//error
+			List<T_ArrayExpContinueGlassSet> returnGlassList = new ArrayList<>();
+			for (Integer cbtionInt: combinList)	
+				returnGlassList.add( latestExpGlassList.get(cbtionInt));
+			int state = checkSigmaSmallerSetting(returnGlassList, aSetting.getSigma());
+			switch (state) {
+				case -1: //error
 					Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "checkSigmaSmallerSetting Error");
 					return null;
-				}
-				if (state == 0) {
-					continue; //not ok
-				}
-				if (state == 1) {
-					// OK
+				case 0: continue; // not ok
+				case 1: // OK
 					Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "checkSigmaSmallerSetting: sigma < setting");
-					return returnGlassList;
-				}
-				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "checkSigmaSmallerSetting fatal Error");
-				continue; // should not be here since there are return in three case
+					return returnGlassList;	
 			}
+			
 		}
-		Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "checkSigmaSmallerSetting: sigma >= setting");
+		Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "checkSigmaSmallerSetting: sigma > setting");
 		return null;
 	}
 	
 	private int checkSigmaSmallerSetting(List<T_ArrayExpContinueGlassSet> aGlassSetList, double sigma) {		
 		String ol01Str = aGlassSetList.get(0).getOl01List();
+		Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "checkSigmaSmallerSetting: Glass ID as following:");
+		for (int ind = 0; ind < aGlassSetList.size(); ind ++ ) {
+			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "checkSigmaSmallerSetting: " + aGlassSetList.get(ind).getGlassID());
+		}
+		
 		int strCount = ol01Str.length() - ol01Str.replace(",", "").length(); // count the number of ","
 		strCount++;
 		

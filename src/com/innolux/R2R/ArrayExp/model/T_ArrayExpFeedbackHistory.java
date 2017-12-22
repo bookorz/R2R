@@ -22,8 +22,8 @@ public class T_ArrayExpFeedbackHistory {
 	@Column("Exp_Rcp_ID")
 	private String Exp_Rcp_ID;
 
-	@Column("Exp_Rcp_Name")
-	private String Exp_Rcp_Name;
+//	@Column("Exp_Rcp_Name")
+//	private String Exp_Rcp_Name;
 
 	@Column("Mea_Rcp_ID")
 	private String Mea_Rcp_ID;
@@ -84,14 +84,6 @@ public class T_ArrayExpFeedbackHistory {
 
 	public void setExp_Rcp_ID(String exp_Rcp_ID) {
 		Exp_Rcp_ID = exp_Rcp_ID;
-	}
-
-	public String getExp_Rcp_Name() {
-		return Exp_Rcp_Name;
-	}
-
-	public void setExp_Rcp_Name(String exp_Rcp_Name) {
-		Exp_Rcp_Name = exp_Rcp_Name;
 	}
 
 	public String getMea_Rcp_ID() {

@@ -15,35 +15,26 @@ public class T_CanonExpSiteNo2ScanNo_CRUD {
 	private static GenericDao<T_CanonExpSiteNo2ScanNo> T_CanonExpSiteNo2ScanNo_DAO = 
 			new JdbcGenericDaoImpl <T_CanonExpSiteNo2ScanNo> (GlobleVar.R2R_DB);
 	
-	public static T_CanonExpSiteNo2ScanNo read(String Primarykey, String Product, 
-			String Exp_Step_ID, int SiteNo, int ScanNo ){		
+	public static List<T_CanonExpSiteNo2ScanNo> read(String Product, String Exp_Step_ID){		
 		try{
 			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
 
-			if(!Primarykey.equals("")){
-				sqlWhereMap.put("Primarykey", Primarykey);
-			}
 			if(!Product.equals("")){
 				sqlWhereMap.put("Product", Product);
 			}
+			
 			if(!Exp_Step_ID.equals("")){
 				sqlWhereMap.put("Exp_Step_ID", Exp_Step_ID);
 			}
-			if(SiteNo != 0){
-				sqlWhereMap.put("SiteNo", SiteNo);
-			}
-			if(ScanNo != 0){
-				sqlWhereMap.put("ScanNo", ScanNo);
-			}
+			
 			List<T_CanonExpSiteNo2ScanNo> tmp = T_CanonExpSiteNo2ScanNo_DAO.findAllByConditions(
 				sqlWhereMap, T_CanonExpSiteNo2ScanNo.class);
-			if(tmp.size()!= 0) {
-				return tmp.get(0);
-			}
+			if(tmp.size()!= 0) return tmp;
+			return null;
 		}catch(Exception e){
 			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, ToolUtility.StackTrace2String(e));
 			return null;
 		}
-		return null;
 	}
+
 }

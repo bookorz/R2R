@@ -27,8 +27,8 @@ public class T_AutoFeedbackSetting{
 	@Column("Exp_Rcp_Id")
 	private String ExpRcpId;
 
-	@Column("Exp_Rcp_Name")
-	private String ExpRcpName;
+//	@Column("Exp_Rcp_Name")
+//	private String ExpRcpName;
 	
 	@Column("Mea_Rcp_Id")
 	private String MeaRcpId;
@@ -129,13 +129,13 @@ public class T_AutoFeedbackSetting{
 		ExpRcpId = expRcpId;
 	}
 
-	public String getExpRcpName() {
-		return ExpRcpName;
-	}
-
-	public void setExpRcpName(String expRcpName) {
-		ExpRcpName = expRcpName;
-	}
+//	public String getExpRcpName() {
+//		return ExpRcpName;
+//	}
+//
+//	public void setExpRcpName(String expRcpName) {
+//		ExpRcpName = expRcpName;
+//	}
 
 	public String getMeaRcpId() {
 		return MeaRcpId;

@@ -13,7 +13,7 @@ public class LogHistory {
 	private String R2R_Name;
 	
 	@Column("TimeStamp")
-	private long Time;
+	private String Time;
 
 	@Column("LogLevel")
 	private String Level;
@@ -29,11 +29,11 @@ public class LogHistory {
 		R2R_Name = r2r_Name;
 	}
 
-	public long getTime() {
+	public String getTime() {
 		return Time;
 	}
 	
-	public void setTime(long time) {
+	public void setTime(String time) {
 		Time = time;
 	}
 
