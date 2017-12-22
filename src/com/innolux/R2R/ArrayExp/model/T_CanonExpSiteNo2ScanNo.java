@@ -1,11 +1,14 @@
 package com.innolux.R2R.ArrayExp.model;
 
+import javax.sound.midi.Synthesizer;
+
 import com.innolux.annotation.Column;
 import com.innolux.annotation.Entity;
 import com.innolux.annotation.Id;
+import com.innolux.services.ObjectAnalyzer;
 
 // P33
-@Entity("ArrayExp_Canon_Exp_SiteNo_2_ScanNo") // table name
+@Entity("ArrayExp_Canon_SiteNo2ScanNo") // table name
 public class T_CanonExpSiteNo2ScanNo{
 	@Id("Primarykey")
 	private String Primarykey;
@@ -16,12 +19,25 @@ public class T_CanonExpSiteNo2ScanNo{
 	@Column("Exp_Step_ID")
 	private String ExpStepID;
 
-	@Column("SiteNo")
-	private String SiteNo;
+	@Column("SiteNo_Start_Index")
+	private String SiteNoStart;
 
+	@Column("SiteNo_End_Index")
+	private String SiteNoEnd;
+	
 	@Column("ScanNo")
 	private String ScanNo;
-
+	
+	public int findScanNo(int siteNo) {
+		int i_siteNoStart = Integer.parseInt(SiteNoStart);
+		int i_siteNoEnd = Integer.parseInt(SiteNoEnd);
+		if (i_siteNoStart <= siteNo && siteNo <= i_siteNoEnd) {
+			return Integer.parseInt(ScanNo);
+		}
+		return -1;
+	}
+	
+	
 	public String getPrimarykey() {
 		return Primarykey;
 	}
@@ -46,13 +62,27 @@ public class T_CanonExpSiteNo2ScanNo{
 		ExpStepID = expStepID;
 	}
 
-	public String getSiteNo() {
-		return SiteNo;
+	
+
+	public String getSiteNoStart() {
+		return SiteNoStart;
 	}
 
-	public void setSiteNo(String siteNo) {
-		SiteNo = siteNo;
+
+	public void setSiteNoStart(String siteNoStart) {
+		SiteNoStart = siteNoStart;
 	}
+
+
+	public String getSiteNoEnd() {
+		return SiteNoEnd;
+	}
+
+
+	public void setSiteNoEnd(String siteNoEnd) {
+		SiteNoEnd = siteNoEnd;
+	}
+
 
 	public String getScanNo() {
 		return ScanNo;
@@ -62,14 +92,8 @@ public class T_CanonExpSiteNo2ScanNo{
 		ScanNo = scanNo;
 	}
 	
-	
 	@Override 
 	public String toString() {
-		return 
-		" Primarykey " + Primarykey +
-		" Product " + Product +
-		" ExpStepID " + ExpStepID +
-		" SiteNo " + SiteNo +
-		" ScanNo " + ScanNo;
+		return ObjectAnalyzer.toString(this);
 	}
 }

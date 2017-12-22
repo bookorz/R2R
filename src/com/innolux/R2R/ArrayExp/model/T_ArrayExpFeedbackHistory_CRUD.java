@@ -62,11 +62,11 @@ public class T_ArrayExpFeedbackHistory_CRUD {
 			}
 			feedbackHistory.setFeedback_Mode(str1);
 			
-			str1 = aGlass.getExpRcpName();
-			if (str1 == null) {
-				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "create T_ArrayExpFeedbackHistory_CRUD Error: getExpRcpName = null");
-			}
-			feedbackHistory.setExp_Rcp_Name(str1);
+//			str1 = aGlass.getExpRcpName();
+//			if (str1 == null) {
+//				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "create T_ArrayExpFeedbackHistory_CRUD Error: getExpRcpName = null");
+//			}
+//			feedbackHistory.setExp_Rcp_Name(str1);
 			
 			str1 = aGlass.getExpStepID();
 			if (str1 == null) {
@@ -146,5 +146,18 @@ public class T_ArrayExpFeedbackHistory_CRUD {
 			return null;
 		}
 		return null;
-	}		
+	}	
+	
+	public static boolean delete(){
+		try{
+			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
+
+			T_ArrayExpFeedbackHistory_DAO.deleteAllByConditions(sqlWhereMap, T_ArrayExpFeedbackHistory.class);
+			return true;
+		}catch(Exception e){
+			logger.error(ToolUtility.StackTrace2String(e));
+			return false;
+		}
+
+	}
 }
