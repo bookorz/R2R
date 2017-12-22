@@ -6,6 +6,7 @@ import java.util.TimerTask;
 import com.innolux.R2R.common.ToolUtility;
 import com.innolux.R2R.common.rvHandler.TibcoRvSender;
 import com.innolux.R2R.handler.ArrayExp;
+import com.innolux.R2R.handler.CFCoater;
 import com.innolux.R2R.handler.RvDispatch;
 
 
@@ -16,8 +17,9 @@ public class R2R_Main {
 		//ReportMonitor();
 //		
 		//new RvDispatch().StartListen("tcp:8585", "INNOLUX.T2.PROD.PDS.PDSGLASSSEND.CELL.>", "8585", "");
-		new RvDispatch().StartListen("tcp:8585", "INNOLUX.T2.PROD.PDS.PDSGLASSSEND.CF.>", "8585", "");
+		//new RvDispatch().StartListen("tcp:8585", "INNOLUX.T2.PROD.PDS.PDSGLASSSEND.CF.>", "8585", "");
 		//new ArrayExp("C:\\AryExp\\");
+		new CFCoater("C:\\PSH\\","C:\\NG\\");
 	}
 
 	private static void ReportMonitor() {
