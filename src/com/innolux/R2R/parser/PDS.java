@@ -43,6 +43,11 @@ public class PDS {
 			beginIdx = msg.indexOf(searchText) + searchText.length();
 			endIdx = msg.indexOf("\"", beginIdx + 1);
 			pds.Lot_Type = msg.substring(beginIdx, endIdx);
+			
+			searchText = "recipeId=\"";
+			beginIdx = msg.indexOf(searchText) + searchText.length();
+			endIdx = msg.indexOf("\"", beginIdx + 1);
+			pds.PPID = msg.substring(beginIdx, endIdx);
 
 			searchText = "processData1=\"";
 			beginIdx = msg.indexOf(searchText) + searchText.length();

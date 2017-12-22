@@ -4,7 +4,6 @@ import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -75,8 +74,8 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		StringBuilder sql = new StringBuilder("");
 		sql.append("insert into ").append(tableName).append(" (").append(fieldNames.toString()).append(") values (")
 				.append(placeholders).append(")");
-		Connection conn = DBConn.getConnection();
-		PreparedStatement ps = conn.prepareStatement(sql.toString());
+		ConnectionInfo conn = DBConn.getConnection();
+		PreparedStatement ps = conn.conn.prepareStatement(sql.toString());
 		// 設置SQL參數佔位符的值
 		setParameter(fieldValues, ps, false);
 		// 執行SQL
@@ -109,8 +108,8 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 
 		// 拼裝sql
 		String sql = "delete from " + tableName + " where " + idFieldName + "=?";
-		Connection conn = DBConn.getConnection();
-		PreparedStatement ps = conn.prepareStatement(sql);
+		ConnectionInfo conn = DBConn.getConnection();
+		PreparedStatement ps = conn.conn.prepareStatement(sql);
 		ps.setObject(1, id);
 		// 執行SQL
 		long StartTime = System.currentTimeMillis();
@@ -161,8 +160,8 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		sql.deleteCharAt(sql.length() - 1).append(" where ").append(fieldNames.get(index)).append("=").append("?");
 
 		// 設置SQL參數佔位符的值
-		Connection conn = DBConn.getConnection();
-		PreparedStatement ps = conn.prepareStatement(sql.toString());
+		ConnectionInfo conn = DBConn.getConnection();
+		PreparedStatement ps = conn.conn.prepareStatement(sql.toString());
 		setParameter(fieldValues, ps, false);
 
 		// 執行SQL
@@ -238,12 +237,12 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		}
 
 		// 設置參數佔位符的值
-		Connection conn = DBConn.getConnection();
+		ConnectionInfo conn = DBConn.getConnection();
 		if (values != null) {
-			ps = conn.prepareStatement(sql);
+			ps = conn.conn.prepareStatement(sql);
 			setParameter(values, ps, true);
 		} else {
-			ps = conn.prepareStatement(sql);
+			ps = conn.conn.prepareStatement(sql);
 		}
 
 		// 執行SQL
@@ -297,12 +296,12 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		}
 
 		// 設置參數佔位符的值
-		Connection conn = DBConn.getConnection();
+		ConnectionInfo conn = DBConn.getConnection();
 		if (values != null) {
-			ps = conn.prepareStatement(sql);
+			ps = conn.conn.prepareStatement(sql);
 			setParameter(values, ps, true);
 		} else {
-			ps = conn.prepareStatement(sql);
+			ps = conn.conn.prepareStatement(sql);
 		}
 
 		// 執行SQL

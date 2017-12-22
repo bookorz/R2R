@@ -14,12 +14,16 @@ public class False_Range_Setting {
 	@Column("OOS_UpLimit")
 	private double OOS_UpLimit;
 	@Column("OOS_LoWLimit")
-	private double OOS_LoWLimit;
+	private double OOS_LowLimit;
+	@Column("OOC_UpLimit")
+	private double OOC_UpLimit;
+	@Column("OOC_LoWLimit")
+	private double OOC_LowLimit;
 	@Column("Filter_UpLimit")
 	private double Filter_UpLimit;
 	@Column("Filter_LowLimit")
 	private double Filter_LowLimit;
-	
+
 	public String getPPID() {
 		return PPID;
 	}
@@ -44,12 +48,28 @@ public class False_Range_Setting {
 		OOS_UpLimit = oOS_UpLimit;
 	}
 
-	public double getOOS_LoWLimit() {
-		return OOS_LoWLimit;
+	public double getOOS_LowLimit() {
+		return OOS_LowLimit;
 	}
 
-	public void setOOS_LoWLimit(double oOS_LoWLimit) {
-		OOS_LoWLimit = oOS_LoWLimit;
+	public void setOOS_LowLimit(double oOS_LowLimit) {
+		OOS_LowLimit = oOS_LowLimit;
+	}
+
+	public double getOOC_UpLimit() {
+		return OOC_UpLimit;
+	}
+
+	public void setOOC_UpLimit(double oOC_UpLimit) {
+		OOC_UpLimit = oOC_UpLimit;
+	}
+
+	public double getOOC_LowLimit() {
+		return OOC_LowLimit;
+	}
+
+	public void setOOC_LowLimit(double oOC_LowLimit) {
+		OOC_LowLimit = oOC_LowLimit;
 	}
 
 	public double getFilter_UpLimit() {
@@ -72,5 +92,5 @@ public class False_Range_Setting {
 	public String toString() {
 		return ObjectAnalyzer.toString(this);
 	}
-	
+
 }

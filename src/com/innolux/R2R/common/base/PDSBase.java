@@ -6,6 +6,7 @@ public class PDSBase {
 	public String ClassName = "";
 	public String Equipment_ID = "";
 	public String SubEquipment_ID = "";
+	public String PPID = "";
 	public String Component_ID = "";
 	public String Lot_Type = "";
 	public String TimeStamp = "";
@@ -14,7 +15,7 @@ public class PDSBase {
 	@Override
 	public String toString() {
 		String info = getClass().getSimpleName() + "{ClassName:" + ClassName + "," + "Equipment_ID:" + Equipment_ID
-				+ "," + "SubEquipmwnt_ID:" + SubEquipment_ID + "," + "Component_ID:" + Component_ID + "," + "Lot_Type:"
+				+ "," + "SubEquipmwnt_ID:" + SubEquipment_ID + ","+ "PPID:" + PPID + "," + "Component_ID:" + Component_ID + "," + "Lot_Type:"
 				+ Lot_Type + "," + "Parameters:[";
 		for (String name : Parameters.keySet()) {
 			info += "(" + name + ":" + Parameters.get(name) + ")";
