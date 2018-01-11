@@ -16,16 +16,15 @@ public class R2R_Main {
 	
 		ReportMonitor();
 //		
-<<<<<<< HEAD
+
 		//new RvDispatch().StartListen("tcp:8585", "INNOLUX.T2.PROD.PDS.PDSGLASSSEND.CELL.>", "8585", "");
 		new RvDispatch().StartListen("tcp:8585", "INNOLUX.T2.PROD.PDS.PDSGLASSSEND.CF.>", "8585", "");
 		new ArrayExp("Y:\\array\\cdol\\r2r\\source\\", "Y:\\array\\cdol\\r2r\\ng\\");
-=======
-		new RvDispatch().StartListen("tcp:8585", "INNOLUX.T2.PROD.PDS.PDSGLASSSEND.CELL.>", "8585", "");
+ new RvDispatch().StartListen("tcp:8585", "INNOLUX.T2.PROD.PDS.PDSGLASSSEND.CELL.>", "8585", "");
 		//new RvDispatch().StartListen("tcp:8585", "INNOLUX.T2.PROD.PDS.PDSGLASSSEND.CF.>", "8585", "");
 		//new ArrayExp("C:\\AryExp\\");
 		
->>>>>>> origin/master
+
 	}
 
 	private static void ReportMonitor() {
