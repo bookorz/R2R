@@ -16,13 +16,13 @@ public class T_CanonExpSiteNo2ScanNo{
 	@Column("Product")
 	private String Product;
 
-	@Column("Exp_Step_ID")
+	@Column("ExpStepID")
 	private String ExpStepID;
 
-	@Column("SiteNo_Start_Index")
+	@Column("SiteNoStart")
 	private String SiteNoStart;
 
-	@Column("SiteNo_End_Index")
+	@Column("SiteNoEnd")
 	private String SiteNoEnd;
 	
 	@Column("ScanNo")

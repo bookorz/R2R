@@ -34,6 +34,9 @@ public class T_ArrayExpContinueGlassSet {
 	@Column("Feedback_Mode")
 	private String feedbackMode;
 	
+	@Column("Site_No_List")
+	private String siteNoList;
+	
 	@Column("OL_01_LIST")
 	private String ol01List;
 	
@@ -138,6 +141,14 @@ public class T_ArrayExpContinueGlassSet {
 
 	public void setFeedbackMode(String feedbackMode) {
 		this.feedbackMode = feedbackMode;
+	}
+
+	public String getSiteNoList() {
+		return siteNoList;
+	}
+
+	public void setSiteNoList(String siteNoList) {
+		this.siteNoList = siteNoList;
 	}
 
 	public String getOl01List() {

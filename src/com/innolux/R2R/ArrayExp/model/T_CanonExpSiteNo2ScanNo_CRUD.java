@@ -24,7 +24,7 @@ public class T_CanonExpSiteNo2ScanNo_CRUD {
 			}
 			
 			if(!Exp_Step_ID.equals("")){
-				sqlWhereMap.put("Exp_Step_ID", Exp_Step_ID);
+				sqlWhereMap.put("ExpStepID", Exp_Step_ID);
 			}
 			
 			List<T_CanonExpSiteNo2ScanNo> tmp = T_CanonExpSiteNo2ScanNo_DAO.findAllByConditions(

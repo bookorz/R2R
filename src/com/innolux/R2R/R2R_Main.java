@@ -17,7 +17,7 @@ public class R2R_Main {
 //		
 		//new RvDispatch().StartListen("tcp:8585", "INNOLUX.T2.PROD.PDS.PDSGLASSSEND.CELL.>", "8585", "");
 		new RvDispatch().StartListen("tcp:8585", "INNOLUX.T2.PROD.PDS.PDSGLASSSEND.CF.>", "8585", "");
-		//new ArrayExp("C:\\AryExp\\");
+		new ArrayExp("Y:\\array\\cdol\\r2r\\source\\", "Y:\\array\\cdol\\r2r\\ng\\");
 	}
 
 	private static void ReportMonitor() {
