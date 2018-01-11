@@ -6,6 +6,9 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import org.apache.log4j.Logger;
 
+import com.innolux.R2R.model.LogHistory;
+import com.innolux.R2R.model.LogHistory_CRUD;
+
 public class ToolUtility {
 	private static Logger logger = Logger.getLogger(ToolUtility.class);
 
@@ -14,6 +17,29 @@ public class ToolUtility {
 		PrintWriter pw = new PrintWriter(sw);
 		e.printStackTrace(pw);
 		return sw.toString(); // stack trace as a string
+	}
+	
+	public static void saveToLogHistoryDB(String name,String errLevel, String logString) {
+		LogHistory alogHisty = new LogHistory();
+		alogHisty.setR2R_Name(name);
+		alogHisty.setTime(System.currentTimeMillis()+"");
+		alogHisty.setLevel(errLevel);
+		alogHisty.setLogString(logString);
+		LogHistory_CRUD.create(alogHisty);
+		
+		switch(errLevel.toUpperCase()){
+		case "INFO":
+			logger.info(logString);
+			break;
+		case "DEBUG":
+			logger.debug(logString);
+			break;
+		case "ERROR":
+			logger.error(logString);
+			break;
+		}
+		
+		return;
 	}
 
 	public static String getTxnID(String eqpID, String functionID) {

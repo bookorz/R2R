@@ -45,6 +45,11 @@ public class CFCoater implements IFileData {
 		fileService.start();
 	}
 
+	public static void main(String[] args) {
+
+		new CFCoater("C:\\PSH\\", "C:\\NG\\");
+	}
+
 	@Override
 	public void onFileData(MeasureFileDataBase data) {
 		Glass_Sammury_Data summary = new Glass_Sammury_Data();
@@ -59,7 +64,7 @@ public class CFCoater implements IFileData {
 			} else {
 				summary.setEqpId(SubEqpId);
 			}
-			String PreEqpId1 = EqpId;
+			//String PreEqpId1 = EqpId;
 			String PreSubEqpId1 = getPreSubEqpId(EqpId, "COT");
 			if (PreSubEqpId1.equals("")) {
 				return;
@@ -95,8 +100,14 @@ public class CFCoater implements IFileData {
 
 			summary.setTimeStamp(System.currentTimeMillis());
 
-			if (!GetPSHGlassSummary(data, summary)) {
-				return;
+			if (PPID.substring(PPID.length() - 3, PPID.length() - 2).equals("P")) {
+				// PSH Measure File
+				if (!GetPSHGlassSummary(data, summary)) {
+					return;
+				}
+			} else {
+				// BM R B G Measure File
+
 			}
 
 			Last_Process_Time lastTObj = Last_Process_Time_CRUD.read(SubEqpId, RecipeNo);
@@ -105,17 +116,32 @@ public class CFCoater implements IFileData {
 				lastTObj = new Last_Process_Time();
 				lastTObj.setSubEqpId(SubEqpId);
 				lastTObj.setRecipeNo(RecipeNo);
+				Last_Process_Time_CRUD.create(lastTObj);
+				lastTObj = Last_Process_Time_CRUD.read(SubEqpId, RecipeNo);
 			}
 
-			AP_Status cfg = AP_Status_CRUD.read(PreEqpId1, PreRecipeNo);
+			AP_Status cfg = AP_Status_CRUD.read(PreSubEqpId1, PPID);
 			if (cfg == null) {
+				cfg = new AP_Status();
+				cfg.setPreEqpId(PreSubEqpId1);
+				cfg.setPreRecipe(PPID);
+				cfg.setCurrent_Count(0);
+				cfg.setLast_Time(System.currentTimeMillis());
+				AP_Status_CRUD.create(cfg);
+				cfg = AP_Status_CRUD.read(PreSubEqpId1, PPID);
+			}
+
+			Measure_point_Setting setting = Measure_point_Setting_CRUD.read(PPID);
+			if (setting == null) {
+				ToolUtility.saveToLogHistoryDB("CF_Coater", "Error",
+						"Measure_point_Setting is not found. PPID:" + PPID);
 				return;
 			}
 
-			if (System.currentTimeMillis() - lastTObj.getUpdateTime() < cfg.getExpire_Interval_Time()) {
+			if (System.currentTimeMillis() - lastTObj.getUpdateTime() > setting.getExpire_Interval_Time()) {
 				// if expired, reset all
 				cfg.setCurrent_Count(0);
-				Glass_Sammury_Data_CRUD.delete(PreSubEqpId1, RecipeNo);
+				Glass_Sammury_Data_CRUD.delete(PreSubEqpId1, PPID);
 			}
 
 			if (PreFilter(summary)) {
@@ -123,30 +149,30 @@ public class CFCoater implements IFileData {
 				Glass_Sammury_Data_CRUD.create(summary);
 
 				cfg.setCurrent_Count(cfg.getCurrent_Count() + 1);
-				logger.info("PreEqpId1:" + PreEqpId1 + " current:" + cfg.getCurrent_Count() + " total:"
-						+ cfg.getTotal_Count());
-				if (cfg.getCurrent_Count() >= cfg.getTotal_Count()) { // calculate
-																		// feedback
+				logger.info("PreSubEqpId1:" + PreSubEqpId1 + " current:" + cfg.getCurrent_Count() + " total:"
+						+ setting.getTotal_Count());
+				if (cfg.getCurrent_Count() >= setting.getTotal_Count()) { // calculate
+																			// feedback
 					RegulationCollection feedbackObj = Calculation(summary);
 					if (feedbackObj.GetRegulationCount() != 0) {
 						// feedback to coater
-						BC bc = new BC(EqpId);
-
-						if (bc.Excute(feedbackObj)) {
-							logger.info("SendToBC successful.");
-						} else {
-							logger.error("SendToBC fail.");
-						}
+//						BC bc = new BC(EqpId);
+//
+//						if (bc.Excute(feedbackObj)) {
+//							logger.info("SendToBC successful.");
+//						} else {
+//							logger.error("SendToBC fail.");
+//						}
 					}
 					cfg.setCurrent_Count(0);
-					Glass_Sammury_Data_CRUD.delete(PreSubEqpId1, RecipeNo);
+					Glass_Sammury_Data_CRUD.delete(PreSubEqpId1, PPID);
 				}
 			}
 
 			// update last process time
 			lastTObj.setUpdateTime(System.currentTimeMillis());
 			Last_Process_Time_CRUD.update(lastTObj);
-
+			AP_Status_CRUD.update(cfg);
 		} catch (Exception e) {
 			logger.error(ToolUtility.StackTrace2String(e));
 		}
@@ -158,41 +184,37 @@ public class CFCoater implements IFileData {
 
 			if (summary != null) {
 				False_Range_Setting filterSetting = False_Range_Setting_CRUD.read(summary.getPPID());
-				String type = summary.getPPID().substring(summary.getPPID().length() - 4,
-						summary.getPPID().length() - 3);
+				if (filterSetting != null) {
+					summary.setTatget(filterSetting.getSpec());
 
-				switch (type) {
-				case "P":
+					if (summary.getStart_Avg() > filterSetting.getFilter_UpLimit()
+							|| summary.getStart_Avg() < filterSetting.getFilter_LowLimit()) {
+						logger.info("CFCoater PreFilter Engage_Avg is not pass by limit.");
+						return false;
+					}
 
-					break;
-				default:
+					if (summary.getMid_Avg() > filterSetting.getFilter_UpLimit()
+							|| summary.getMid_Avg() < filterSetting.getFilter_LowLimit()) {
+						logger.info("CFCoater PreFilter Plunge_Avg is not pass by limit.");
+						return false;
+					}
 
+					if (summary.getEnd_Avg() > filterSetting.getFilter_UpLimit()
+							|| summary.getEnd_Avg() < filterSetting.getFilter_LowLimit()) {
+						logger.info("CFCoater PreFilter Retract_Avg is not pass by limit.");
+						return false;
+					}
+				} else {
+					logger.error("CFCoater PreFilter filterSetting is null.");
+					ToolUtility.saveToLogHistoryDB("CF_Coater", "Error",
+							"filterSetting is not found. PPID:" + summary.getPPID());
 				}
-
-				summary.setTatget(filterSetting.getSpec());
-
-				if (summary.getStart_Avg() > filterSetting.getFilter_UpLimit()
-						|| summary.getStart_Avg() < filterSetting.getFilter_LowLimit()) {
-					logger.info("CFCoater PreFilter Engage_Avg is not pass by limit.");
-					return false;
-				}
-
-				if (summary.getMid_Avg() > filterSetting.getFilter_UpLimit()
-						|| summary.getMid_Avg() < filterSetting.getFilter_LowLimit()) {
-					logger.info("CFCoater PreFilter Plunge_Avg is not pass by limit.");
-					return false;
-				}
-
-				if (summary.getEnd_Avg() > filterSetting.getFilter_UpLimit()
-						|| summary.getEnd_Avg() < filterSetting.getFilter_LowLimit()) {
-					logger.info("CFCoater PreFilter Retract_Avg is not pass by limit.");
-					return false;
-				}
-
 			} else {
 				logger.error("CFCoater PreFilter summary is null.");
+				ToolUtility.saveToLogHistoryDB("CF_Coater", "Error",
+						"PreFilter summary is null.");
 			}
-
+			result = true;
 		} catch (Exception e) {
 			logger.error("CFCoater PreFilter " + ToolUtility.StackTrace2String(e));
 		}
@@ -205,7 +227,7 @@ public class CFCoater implements IFileData {
 		double T3Offset = 0;
 		double PDTOffset = 0;
 		double SqueegeOffset = 0;
-		
+
 		double BetaOld = 0;
 		double Q2New = 0;
 		double T3New = 0;
@@ -215,11 +237,13 @@ public class CFCoater implements IFileData {
 		String T3NewHex = "";
 		String PDTNewHex = "";
 		String SqueegeNewHex = "";
-		
+
 		try {
 			List<Glass_Sammury_Data> glassList = Glass_Sammury_Data_CRUD.read(summary.getPreEqpId(),
-					summary.getPreRecipe_No());
+					summary.getPPID());
 			False_Range_Setting filterSetting = False_Range_Setting_CRUD.read(summary.getPPID());
+			
+			
 			summary.setStart_Avg(0);
 			summary.setMid_Avg(0);
 			summary.setEnd_Avg(0);
@@ -234,7 +258,7 @@ public class CFCoater implements IFileData {
 			summary.setEnd_Avg(summary.getEnd_Avg() / (double) glassList.size());
 
 			logger.info("summary:" + summary + " filterSetting:" + filterSetting);
-
+			
 			if (summary.getStart_Avg() > filterSetting.getOOS_UpLimit()
 					|| summary.getStart_Avg() < filterSetting.getOOS_LowLimit()) {
 				logger.info("CFCoater Calculation Start_Avg is not pass by OOS limit.");
@@ -247,7 +271,7 @@ public class CFCoater implements IFileData {
 					|| summary.getEnd_Avg() < filterSetting.getOOS_LowLimit()) {
 				logger.info("CFCoater Calculation End_Avg is not pass by OOS limit.");
 				// Stop EQP
-			} else if (summary.getStart_Avg() < filterSetting.getOOC_UpLimit()
+			} /*else if (summary.getStart_Avg() < filterSetting.getOOC_UpLimit()
 					|| summary.getStart_Avg() > filterSetting.getOOC_LowLimit()) {
 				logger.info("CFCoater Calculation Start_Avg is not pass by OOC limit.");
 
@@ -259,28 +283,29 @@ public class CFCoater implements IFileData {
 					|| summary.getEnd_Avg() > filterSetting.getOOC_LowLimit()) {
 				logger.info("CFCoater Calculation End_Avg is not pass by OOC limit.");
 
-			} else {
+			}*/ else {
 				logger.info("CFCoater Calculation Pass by all limit.");
-				Coater_PDS_Data CoaterPds = Coater_PDS_Data_CRUD.read(summary.getPreEqpId(), summary.getPreRecipe_No());
-				Coater_Param_Setting CoaterSetting = Coater_Param_Setting_CRUD.read(summary.getPreEqpId(),
-						summary.getPreRecipe_No());
+				Coater_PDS_Data CoaterPds = Coater_PDS_Data_CRUD.read(summary.getPreEqpId(), summary.getPPID());
+				Coater_Param_Setting CoaterSetting = Coater_Param_Setting_CRUD.read(summary.getPPID());
 
 				// BetaOffset begin
-				BetaOffset = -1.0 * ((summary.getMid_Avg() - summary.getStart_Avg()) / CoaterSetting.getCot_Mid_Diff())
+				BetaOffset = -1.0 * ((summary.getMid_Avg() - summary.getTatget()) / CoaterSetting.getCot_Mid_Diff())
 						* CoaterSetting.getBETA_Cot_parameter();
 				// 四捨五入到小數點下四位
-				//BetaOffset = new BigDecimal(BetaOffset).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
+				// BetaOffset = new BigDecimal(BetaOffset).setScale(4,
+				// BigDecimal.ROUND_HALF_UP).doubleValue();
 				logger.debug("BetaOffset:" + BetaOffset);
 				// BetaOffset end
 
 				// T3Offset begin
-				T3Offset = -1.0 * (summary.getStart_Avg()
+				T3Offset = -1.0 * ((summary.getStart_Avg()
 						+ (BetaOffset * CoaterSetting.getCot_Mid_Diff() * CoaterSetting.getBeta_Coff_For_Cot_Start()
 								/ CoaterSetting.getBETA_Cot_parameter())
-						- summary.getTatget() * CoaterSetting.getT3_Cot_parameter()
+						- summary.getTatget()) * CoaterSetting.getT3_Cot_parameter()
 								/ CoaterSetting.getCot_Start_Diff());
 				// 四捨五入到小數點下四位
-				//T3Offset = new BigDecimal(T3Offset).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
+				// T3Offset = new BigDecimal(T3Offset).setScale(4,
+				// BigDecimal.ROUND_HALF_UP).doubleValue();
 				logger.debug("T3Offset:" + T3Offset);
 				// T3Offset end
 
@@ -290,7 +315,8 @@ public class CFCoater implements IFileData {
 						- summary.getTatget()) * CoaterSetting.getPDT_Cot_parameter()
 						/ CoaterSetting.getPDT_Cot_End_Diff());
 				// 四捨五入到小數點下四位
-				//PDTOffset = new BigDecimal(PDTOffset).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
+				// PDTOffset = new BigDecimal(PDTOffset).setScale(4,
+				// BigDecimal.ROUND_HALF_UP).doubleValue();
 				logger.debug("PDTOffset:" + PDTOffset);
 				// PDTOffset end
 
@@ -300,85 +326,90 @@ public class CFCoater implements IFileData {
 						- summary.getTatget()) * CoaterSetting.getSqueegee_L_Cot_parameter()
 						/ CoaterSetting.getSQ_Cot_End_Diff());
 				// 四捨五入到小數點下四位
-				//SqueegeOffset = new BigDecimal(SqueegeOffset).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
+				// SqueegeOffset = new BigDecimal(SqueegeOffset).setScale(4,
+				// BigDecimal.ROUND_HALF_UP).doubleValue();
 				logger.debug("SqueegeOffset:" + SqueegeOffset);
 				// SqueegeOffset end
-				
-				//BetaOld begin
-				BetaOld=10.0*CoaterPds.getDis_Spd_Q2()*CoaterSetting.getSolid_Density()/CoaterPds.getCoatSpd_V1()/CoaterPds.getCoating_W()/CoaterSetting.getDry_Thinkness();
+
+				// BetaOld begin
+				BetaOld = 10.0 * CoaterPds.getDis_Spd_Q2() * CoaterSetting.getSolid_Density()
+						/ CoaterPds.getCoatSpd_V1() / CoaterPds.getCoating_W() / CoaterSetting.getDry_Thinkness();
 				// 四捨五入到小數點下四位
-				//BetaOld = new BigDecimal(BetaOld).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
+				// BetaOld = new BigDecimal(BetaOld).setScale(4,
+				// BigDecimal.ROUND_HALF_UP).doubleValue();
 				logger.debug("BetaOld:" + BetaOld);
-				//BetaOld end
-				//-------------------------------------補植----------------------------------------
-				//Q2New begin
-				Q2New = (BetaOld+BetaOffset)*CoaterPds.getCoatSpd_V1()*CoaterPds.getCoating_W()*CoaterSetting.getDry_Thinkness()/10/CoaterSetting.getSolid_Density();
+				// BetaOld end
+				// -------------------------------------補植----------------------------------------
+				// Q2New begin
+				Q2New = (BetaOld + BetaOffset) * CoaterPds.getCoatSpd_V1() * CoaterPds.getCoating_W()
+						* CoaterSetting.getDry_Thinkness() / 10 / CoaterSetting.getSolid_Density();
 				// 四捨五入到小數點下四位
 				Q2New = new BigDecimal(Q2New).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
 				logger.debug("Q2New:" + Q2New);
 				Q2NewHex = ToolUtility.demical2Hex(Q2New, 0.001, "CfCoater");
 				logger.debug("Q2NewHex:" + Q2NewHex);
-				if(Q2NewHex.length()>=4){
-					result.StoreRegulation(1,Q2NewHex);
-				}else{
+				if (Q2NewHex.length() >= 4) {
+					result.StoreRegulation(1, Q2NewHex);
+				} else {
 					result.StoreRegulation(1, Q2NewHex.substring(4, 8));
 					result.StoreRegulation(2, Q2NewHex.substring(0, 4));
 				}
-				//Q2New end
-				
-				//T3New begin
-				T3New = CoaterPds.getAfterDis_T3()+T3Offset;
+				// Q2New end
+
+				// T3New begin
+				T3New = CoaterPds.getAfterDis_T3() + T3Offset;
 				// 四捨五入到小數點下四位
 				T3New = new BigDecimal(T3New).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
 				logger.debug("T3New:" + T3New);
 				T3NewHex = ToolUtility.demical2Hex(T3New, 0.001, "CfCoater");
 				logger.debug("T3NewHex:" + T3NewHex);
-				if(T3NewHex.length()>=4){
-					result.StoreRegulation(3,T3NewHex);
-				}else{
+				if (T3NewHex.length() >= 4) {
+					result.StoreRegulation(3, T3NewHex);
+				} else {
 					result.StoreRegulation(3, T3NewHex.substring(4, 8));
 					result.StoreRegulation(4, T3NewHex.substring(0, 4));
 				}
-				//T3New end
-				
-				//PDTNew begin
-				PDTNew=CoaterPds.getPumpDecel_T() + PDTOffset;
+				// T3New end
+
+				// PDTNew begin
+				PDTNew = CoaterPds.getPumpDecel_T() + PDTOffset;
 				// 四捨五入到小數點下四位
 				PDTNew = new BigDecimal(PDTNew).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
 				logger.debug("PDTNew:" + PDTNew);
 				PDTNewHex = ToolUtility.demical2Hex(PDTNew, 0.001, "CfCoater");
 				logger.debug("PDTNewHex:" + PDTNewHex);
-				if(PDTNewHex.length()>=4){
-					result.StoreRegulation(5,PDTNewHex);
-				}else{
+				if (PDTNewHex.length() >= 4) {
+					result.StoreRegulation(5, PDTNewHex);
+				} else {
 					result.StoreRegulation(5, PDTNewHex.substring(4, 8));
 					result.StoreRegulation(6, PDTNewHex.substring(0, 4));
 				}
-				//PDTNew end
-				
-				//SqueegeNew begin
-				SqueegeNew = CoaterPds.getSqueegee_L()+SqueegeOffset;
+				// PDTNew end
+
+				// SqueegeNew begin
+				SqueegeNew = CoaterPds.getSqueegee_L() + SqueegeOffset;
 				// 四捨五入到小數點下四位
 				SqueegeNew = new BigDecimal(SqueegeNew).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
 				logger.debug("SqueegeNew:" + SqueegeNew);
 				SqueegeNewHex = ToolUtility.demical2Hex(SqueegeNew, 0.001, "CfCoater");
 				logger.debug("SqueegeNewHex:" + SqueegeNewHex);
-				if(SqueegeNewHex.length()>=4){
-					result.StoreRegulation(7,SqueegeNewHex);
-				}else{
+				if (SqueegeNewHex.length() >= 4) {
+					result.StoreRegulation(7, SqueegeNewHex);
+				} else {
 					result.StoreRegulation(7, SqueegeNewHex.substring(4, 8));
 					result.StoreRegulation(8, SqueegeNewHex.substring(0, 4));
 				}
-				//SqueegeNew end
-				//-------------------------------------補植----------------------------------------
-				
+				// SqueegeNew end
+				// -------------------------------------補植----------------------------------------
+
 				CfCoater_Feedback_History history = new CfCoater_Feedback_History();
 				history.setSubEqpId(summary.getPreEqpId());
 				history.setPPID(summary.getPPID());
 				history.setUser_Id("Auto");
 				history.setFeedBack_Time(Calendar.getInstance().getTime());
-				history.setFeedback_Value("Q2New:" +Q2New +" T3New:" +T3New+" PDTNew:" + PDTNew+"SqueegeNew:" +SqueegeNew);
-				
+				history.setFeedback_Value(
+						"Q2New:" + Q2New + " T3New:" + T3New + " PDTNew:" + PDTNew + "SqueegeNew:" + SqueegeNew);
+
 				CfCoater_Feedback_History_CRUD.create(history);
 
 			}
@@ -425,6 +456,7 @@ public class CFCoater implements IFileData {
 			result = true;
 		} catch (Exception e) {
 			logger.error("CFCoater GetPSHGlassSummary " + ToolUtility.StackTrace2String(e));
+			ToolUtility.saveToLogHistoryDB("CF_Coater", "Error", "計算單片平均錯誤" + ToolUtility.StackTrace2String(e));
 			summary = null;
 		}
 		return result;
@@ -441,7 +473,7 @@ public class CFCoater implements IFileData {
 							BCIP);
 					if (BCNode != null) {
 						PPID ppid = PPID_CRUD.read(BCLine.getBCNo(), BCLine.getBCLineNo(), BCLine.getBCFabType(), PPID,
-								BCNode.getBCNodeNo());
+								BCNode.getBCNodeNo(), BCIP);
 						if (ppid != null) {
 							result = ppid.getRecipe(BCNode.getNodeNo());
 						} else {

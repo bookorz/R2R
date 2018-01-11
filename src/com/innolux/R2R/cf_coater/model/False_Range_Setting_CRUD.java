@@ -16,7 +16,7 @@ public class False_Range_Setting_CRUD {
 		try{
 			
 			
-			False_Range_Setting_Dao.get(PPID, False_Range_Setting.class);
+			result = False_Range_Setting_Dao.get(PPID, False_Range_Setting.class);
 			
 		}catch(Exception e){
 			logger.error(ToolUtility.StackTrace2String(e));

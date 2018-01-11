@@ -6,19 +6,23 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import com.innolux.R2R.cf_coater.model.Last_Process_Time;
-import com.innolux.R2R.common.GlobleVar;
 import com.innolux.R2R.common.ToolUtility;
-import com.innolux.R2R.model.MeasureFileData_CRUD;
 import com.innolux.dao.GenericDao;
+import com.innolux.dao.JdbcDaoHelper;
 import com.innolux.dao.JdbcGenericDaoImpl;
 
 public class PPID_CRUD {
 	private static Logger logger = Logger.getLogger(PPID_CRUD.class);
-	private static GenericDao<PPID> PPID_Dao = new JdbcGenericDaoImpl<PPID>(GlobleVar.R2R_DB);
+
 	
-	public static PPID read(String BCNo,String LineNo,String FabType,String PPID, String NodeNo){
+	public static PPID read(String BCNo,String LineNo,String FabType,String PPID, String NodeNo,String BCIP){
 		PPID result = null;
+		
+		String tns = "jdbc:oracle:thin:@(DESCRIPTION =(ADDRESS_LIST =(ADDRESS = (PROTOCOL = TCP)(HOST = " + BCIP
+				+ ")(PORT = 1521)))(CONNECT_DATA =(SERVICE_NAME =ORCL)))";
+		JdbcDaoHelper BC_DB = new JdbcDaoHelper(tns, "innolux", "innoluxabc123", 0);
+		
+		GenericDao<PPID> PPID_Dao = new JdbcGenericDaoImpl<PPID>(BC_DB);
 		try{
 			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
 
@@ -26,16 +30,13 @@ public class PPID_CRUD {
 				sqlWhereMap.put("BCNo", BCNo);
 			}
 			if(!LineNo.equals("")){
-				sqlWhereMap.put("LineNo", LineNo);
+				sqlWhereMap.put("BCLineNo", LineNo);
 			}
 			if(!FabType.equals("")){
 				sqlWhereMap.put("FabType", FabType);
 			}
 			if(!PPID.equals("")){
 				sqlWhereMap.put("PPID", PPID);
-			}
-			if(!NodeNo.equals("")){
-				sqlWhereMap.put("NodeNo", NodeNo);
 			}
 			
 			

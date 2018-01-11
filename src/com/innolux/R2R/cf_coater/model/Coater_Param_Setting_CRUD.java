@@ -27,27 +27,12 @@ public class Coater_Param_Setting_CRUD {
 		return result;
 	}
 	
-	public static Coater_Param_Setting read(String EqpId,String Recipe){
+	public static Coater_Param_Setting read(String PPID){
 		Coater_Param_Setting result = null;
 		try{
-			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
-
-			if(!EqpId.equals("")){
-				sqlWhereMap.put("EqpId", EqpId);
-			}
-			if(!Recipe.equals("")){
-				sqlWhereMap.put("Recipe", Recipe);
-			}
-			List<Coater_Param_Setting> tmp = Coater_Param_Setting_Dao.findAllByConditions(sqlWhereMap, Coater_Param_Setting.class);
-			if (tmp == null) {
-				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "FeedbackTime read Error: tmp = null");
-				return null;
-			}else if (tmp.size() == 0) {
-				Utility.saveToLogHistoryDB(GlobleVar.LogDebugType, "FeedbackTime read: tmp.size = 0");
-				return null;
-			}if (tmp.size() != 0) {
-				return tmp.get(0);
-			}
+			
+			result = Coater_Param_Setting_Dao.get(PPID, Coater_Param_Setting.class);
+			
 		}catch(Exception e){
 			logger.error(ToolUtility.StackTrace2String(e));
 		}

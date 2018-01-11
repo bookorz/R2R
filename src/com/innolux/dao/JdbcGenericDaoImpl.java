@@ -262,7 +262,7 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		} catch (Exception e) {
 			// 釋放資源
 			DBConn.release(conn, ps, rs);
-			logger.debug(ToolUtility.StackTrace2String(e) + " : " + sql);
+			logger.debug(ToolUtility.StackTrace2String(e) + " : " + sql+ " " + sqlWhereMap);
 			throw new Exception(ToolUtility.StackTrace2String(e));
 		} finally {
 
