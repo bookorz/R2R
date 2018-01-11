@@ -27,9 +27,6 @@ public class T_AutoFeedbackSetting{
 	@Column("Exp_Rcp_Id")
 	private String ExpRcpId;
 
-//	@Column("Exp_Rcp_Name")
-//	private String ExpRcpName;
-	
 	@Column("Mea_Rcp_Id")
 	private String MeaRcpId;
 
@@ -81,6 +78,9 @@ public class T_AutoFeedbackSetting{
 	@Column("Expire_Time")
 	private long ExpireTime;
 
+	@Column("Hold_Flag")
+	private boolean holdFlag;
+	
 	public String getPrimarykey() {
 		return Primarykey;
 	}
@@ -128,14 +128,6 @@ public class T_AutoFeedbackSetting{
 	public void setExpRcpId(String expRcpId) {
 		ExpRcpId = expRcpId;
 	}
-
-//	public String getExpRcpName() {
-//		return ExpRcpName;
-//	}
-//
-//	public void setExpRcpName(String expRcpName) {
-//		ExpRcpName = expRcpName;
-//	}
 
 	public String getMeaRcpId() {
 		return MeaRcpId;
@@ -279,6 +271,15 @@ public class T_AutoFeedbackSetting{
 
 	public void setExpiretime(long ExpireTime) {
 		this.ExpireTime = ExpireTime;
+	}
+
+	
+	public boolean getHoldFlag() {
+		return holdFlag;
+	}
+
+	public void setHoldFlag(boolean holdFlag) {
+		this.holdFlag = holdFlag;
 	}
 
 	@Override 

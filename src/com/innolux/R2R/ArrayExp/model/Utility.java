@@ -1,5 +1,6 @@
 package com.innolux.R2R.ArrayExp.model;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,36 +16,17 @@ import com.innolux.R2R.model.LogHistory;
 import com.innolux.R2R.model.LogHistory_CRUD;
 
 public class Utility {
-	public static boolean DEBUG = true;
 	private static Logger logger = Logger.getLogger(Utility.class);
+	public static boolean DEBUG = true;
 	
 	public static void main(String [] argv) {
 		
 		try {
-			List<List<Integer>>elementList = new ArrayList<List<Integer>>();
-			for (int ind = 5; ind >= 1; ind -= 1) {
-				elementList.add(Arrays.asList(ind));
-			}
-			elementList.sort(new Comparator<List<Integer>>() {
-				public int compare(List<Integer> l1, List<Integer> l2) {
-					return l1.get(0) - l2.get(0);
-				}
-			});
-			List<List<Integer>> combinationList = combination(elementList, 3);
 			
-			for (List<Integer> combinList: combinationList) {
-				// check if it is continue;
-				int isContinue = 1;
-				for (int ind = 0; ind < combinList.size(); ind++) {
-					if (combinList.get(0) + ind != combinList.get(ind)) {
-						isContinue = 0;
-						break;
-					}
-				}
-				if(isContinue == 0) continue;			
-			}
-				
-			int a = 1;
+			String folderName = new SimpleDateFormat("yyyyMMdd").format(new Date());
+
+
+			System.out.println("folderName");
 		}catch(Exception e) {
 			System.out.println(e.getMessage());
 		}

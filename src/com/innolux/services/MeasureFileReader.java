@@ -52,7 +52,7 @@ public class MeasureFileReader extends Thread {
 							}
 
 						} else if (listOfFiles[i].isDirectory()) {
-
+							// nothing to do 
 						}
 					} catch (Exception e1) {
 

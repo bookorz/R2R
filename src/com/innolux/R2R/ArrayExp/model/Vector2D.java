@@ -3,6 +3,7 @@ package com.innolux.R2R.ArrayExp.model;
 import javax.naming.spi.DirStateFactory.Result;
 
 public class Vector2D {
+	int index;
 	double xAxis;
 	double yAxis;
 	double xValue;
@@ -12,11 +13,28 @@ public class Vector2D {
 		
 	}
 	
+	public Vector2D(int index, double xAxis, double yAxis, double xValue, double yValue){
+		this.index = index;
+		this.xAxis = xAxis;
+		this.yAxis = yAxis;
+		this.xValue = xValue;
+		this.yValue = yValue;
+	}
+	
 	public Vector2D(double xAxis, double yAxis, double xValue, double yValue){
 		this.xAxis = xAxis;
 		this.yAxis = yAxis;
 		this.xValue = xValue;
 		this.yValue = yValue;
+	}
+
+	
+	public int getIndex() {
+		return index;
+	}
+
+	public void setIndex(int index) {
+		this.index = index;
 	}
 
 	public double getxAxis() {
@@ -52,7 +70,7 @@ public class Vector2D {
 	}
 	
 	public String toString() {
-		String result = "";
+		String result = index + ": ";
 		result += String.valueOf(this.xAxis) + "," + String.valueOf(this.yAxis) + ",";
 		result += String.valueOf(this.xValue)+ ","  + String.valueOf(this.yValue)+ ";" ;
 		return result; 

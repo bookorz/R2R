@@ -68,6 +68,8 @@ public class T_ArrayExpContinueGlassSet_CRUD {
 			}
 			aSet.setFeedbackMode(str1);
 			
+			aSet.setSiteNoList(aGlass.getSiteNoList());
+			aSet.setOl01List(aGlass.getOl01ListStr());
 			aSet.setOl01List(aGlass.getOl01ListStr());
 			aSet.setOl02List(aGlass.getOl02ListStr());
 			aSet.setCoordXList(aGlass.getCoordXListStr());
@@ -198,6 +200,42 @@ public class T_ArrayExpContinueGlassSet_CRUD {
 			logger.error(ToolUtility.StackTrace2String(e));
 			return false;
 		}
-		
+	}
+	
+	public static boolean delete(String productName, 	
+									String expID, 
+									String expRcpID, 
+									String measRcpID,  
+									String measStepID, 		
+									String adcOrFdc){
+		try{
+			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
+
+			if(!productName.equals("")){
+				sqlWhereMap.put("Product", productName);
+			}
+			if(!expID.equals("")){
+				sqlWhereMap.put("Exp_ID", expID);
+			}
+			if(!expRcpID.equals("")){
+				sqlWhereMap.put("Exp_Rcp_ID", expRcpID);
+			}
+			if(!measStepID.equals("")){
+				sqlWhereMap.put("Mea_Step_ID", measStepID);
+			}
+			if(!measRcpID.equals("")){
+				sqlWhereMap.put("Mea_Rcp_ID", measRcpID);
+			}
+			if(!adcOrFdc.equals("")){
+				sqlWhereMap.put("Adc_Or_Fdc", adcOrFdc);
+			}
+
+			T_ArrayExpContinueGlassSet_DAO.deleteAllByConditions(sqlWhereMap, T_ArrayExpContinueGlassSet.class);
+			return true;
+		}catch(Exception e){
+			logger.error(ToolUtility.StackTrace2String(e));
+			return false;
+		}
+
 	}
 }

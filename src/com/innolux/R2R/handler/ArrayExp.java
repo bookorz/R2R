@@ -7,13 +7,15 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
-
 
 import org.apache.log4j.Logger;
 
 import com.innolux.R2R.ArrayExp.model.Arith;
 import com.innolux.R2R.ArrayExp.model.ExpMeasGlass;
+import com.innolux.R2R.ArrayExp.model.MES_lwExpR2rSetting;
+import com.innolux.R2R.ArrayExp.model.MES_lwExpR2rSetting_CRUD;
 import com.innolux.R2R.ArrayExp.model.T_ArrayExpContinueGlassSet;
 import com.innolux.R2R.ArrayExp.model.T_ArrayExpContinueGlassSet_CRUD;
 import com.innolux.R2R.ArrayExp.model.T_ArrayExpFeedbackHistory_CRUD;
@@ -32,10 +34,9 @@ import com.innolux.R2R.model.LogHistory_CRUD;
 import com.innolux.services.MeasureFileReader;
 
 public class ArrayExp implements IFileData{
-	private static final ExpMeasGlass ExpMeasGlass = null;
-	private Logger logger = Logger.getLogger(this.getClass());
 	public final boolean DEBUG = false;
-
+	private static Logger logger = Logger.getLogger(ArrayExp.class);
+	
 	public static void main(String [] argv) {
 		//System.out.println(MeasureFileReader.class);	
 		ArrayExp a = new ArrayExp("C:\\R2RNikonTest\\workspace\\", "C:\\R2RNikonTest\\ngFile\\");
@@ -101,7 +102,7 @@ public class ArrayExp implements IFileData{
 			averageGlass.setExpRcpName(emGlass.getExpRcpName());
 			averageGlass.setExpStepID(emGlass.getExpStepID());
 			averageGlass.setMeasEqId(emGlass.getMeasEqId());
-			averageGlass.setExpRcpName(emGlass.getExpRcpName());
+			averageGlass.setExpSupplier(emGlass.getExpSupplier());
 			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "AverageMatchGlassList::");
 			for (int ind = 0; ind < matchGlassList.size(); ind ++) {
 				Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, ind + ". Glass ID = " + matchGlassList.get(ind).getGlassID());
@@ -121,7 +122,7 @@ public class ArrayExp implements IFileData{
 			averageGlass.multipliedRatio(autoFbkSeting.getRatio());
 			
 			// createFeedbackFile
-			if(emGlass.getExpSupplier().toUpperCase().equals("NIKON")){
+			if(averageGlass.getExpSupplier().toUpperCase().equals("NIKON")){
 				int intState = creatNikonFeedbackFile(averageGlass);
 				if (intState == -1) {
 					Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Error: creatNikonFeedbackFile fail");
@@ -143,14 +144,12 @@ public class ArrayExp implements IFileData{
 					return;
 				}
 				Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "DPS create rv5 file success");
-			}else if(emGlass.getExpSupplier().toUpperCase().equals("CANON")){
-				int intState = createCanonFeedbackFile(emGlass);
+			}else if(averageGlass.getExpSupplier().toUpperCase().equals("CANON")){
+				int intState = createCanonFeedbackFile(averageGlass);
 				if (intState == -1) {
 					Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Error: creatNikonFeedbackFile fail");
 					return;
 				}else Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "creatNikonFeedbackFile success");
-
-				// sendFdbkFile2Nanon(feedbackFile); // TODO
 			}
 			
 			// save feedback history to DB
@@ -159,6 +158,47 @@ public class ArrayExp implements IFileData{
 				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Error: cannot create T_ArrayExpFeedbackHistory_CRUD");
 			}
 			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "create T_ArrayExpFeedbackHistory_CRUD success");
+			
+			// clean continue glass set
+			state =  T_ArrayExpContinueGlassSet_CRUD.delete(averageGlass.getProductName(),
+															averageGlass.getExpID(),
+															averageGlass.getExpRcpID(),
+															averageGlass.getMeasRcpID(),
+															averageGlass.getMeasStepID(),
+															averageGlass.getAdcOrFdc());
+			if (!state) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Error: cannot delete T_ArrayExpContinueGlassSet_CRUD");
+			}
+			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Success: delete T_ArrayExpContinueGlassSet_CRUD success");
+			
+			// TODO: save table to MES
+			// 
+//			MES_lwExpR2rSetting aMES_lwExpR2rSetting = new MES_lwExpR2rSetting();
+//			aMES_lwExpR2rSetting.setEqpId(averageGlass.getExpID());
+//			aMES_lwExpR2rSetting.setHoldFlag(averageGlass.getHoldFlag()); // TODO
+//			aMES_lwExpR2rSetting.setProdId(averageGlass.getProductName());
+//			aMES_lwExpR2rSetting.setR2rFeedbackTime(new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date()));
+//			aMES_lwExpR2rSetting.setRecipeId(averageGlass.getExpRcpID());
+//			List<MES_lwExpR2rSetting> mesLwExpR2rSettingList = MES_lwExpR2rSetting_CRUD.read(aMES_lwExpR2rSetting);
+//			if (mesLwExpR2rSettingList == null) {
+//				// create
+//				state = MES_lwExpR2rSetting_CRUD.create(aMES_lwExpR2rSetting);
+//				if (state) {
+//					Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "create MES_lwExpR2rSetting_CRUD success");
+//				}else {
+//					Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Error: create MES_lwExpR2rSetting_CRUD error");
+//				}
+//					
+//			}else {
+//				// update
+//				state = MES_lwExpR2rSetting_CRUD.update(aMES_lwExpR2rSetting);
+//				if (state) {
+//					Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "update MES_lwExpR2rSetting_CRUD success");
+//				}else {
+//					Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Error: update MES_lwExpR2rSetting_CRUD error");
+//				}
+//			}
+			
 			return;
 		}catch(Exception e) {
 			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, ToolUtility.StackTrace2String(e));
@@ -172,30 +212,33 @@ public class ArrayExp implements IFileData{
 								  emGlass.getMeasRcpID() + "_" + timeStamp;
 		try {
 			// DEBUG use
-			PrintWriter writer = new PrintWriter("C:\\" + feedbackFileName + ".csv", "UTF-8");
-			// PrintWriter writer = new PrintWriter("Y:\\" + emGlass.getExpID() + "\\" + feedbackFileName + ".csv", "UTF-8");
-			writer.println( "Recipe ,No.," + emGlass.getExpRcpID() ); //emGlass.getExpRcpName()
+			//PrintWriter writer = new PrintWriter("C:\\R2RNikonTest\\" + feedbackFileName + ".csv", "UTF-8");
+			PrintWriter writer = new PrintWriter("C:\\R2R-FTP\\" + emGlass.getExpID() + "\\" + feedbackFileName + ".csv", "UTF-8");
+			writer.println( "Recipe No.," + emGlass.getExpRcpID() ); //emGlass.getExpRcpName()
 			writer.println( "Glass ID," + emGlass.getGlassID() );
-			
 			writer.println( "Insp. Date," + timeStamp );
 			int pointNum = emGlass.getMeasPointList().size();
-			writer.println("MeasPoint," + pointNum);
-			for(int pInd = 1; pInd <= pointNum; pInd++) {
+			writer.println("Measure Point," + pointNum);
+			
+			List<T_CanonExpSiteNo2ScanNo> siteNo2ScanNoList = T_CanonExpSiteNo2ScanNo_CRUD.read(emGlass.getProductName(), emGlass.getExpStepID());																		 			
+			if (siteNo2ScanNoList == null) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "createCanonFeedbackFile Error: cannot read T_CanonExpSiteNo2ScanNo");
+				return -1; 
+			}
+			
+			for(int pInd = 0; pInd < pointNum; pInd++) {
 				// Canon X = MCD X
 				// Canon Y = MCD Y
-				Vector2D point = emGlass.getMeasPointList().get(pInd - 1);
-				String CanonX = String.format("%f", point.getxAxis());
-				String CanonY = String.format("%f", point.getyAxis());
+				Vector2D point = emGlass.getMeasPointList().get(pInd);
+				int siteNo = point.getIndex();
+				String CanonX = String.format("%.3f", point.getxAxis() / 1000);
+				String CanonY = String.format("%.3f", point.getyAxis() / 1000);
 				String CanonOL01 = String.format("%.3f", point.getxValue());
 				String CanonOL02 = String.format("%.3f", point.getyValue());
-				List<T_CanonExpSiteNo2ScanNo> siteNo2ScanNoList = T_CanonExpSiteNo2ScanNo_CRUD.read(emGlass.getProductName(), emGlass.getExpStepID());																		 			
-				if (siteNo2ScanNoList == null) {
-					Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "createCanonFeedbackFile Error: cannot read T_CanonExpSiteNo2ScanNo");
-					return -1; 
-				}
+				
 				int scanNo = -1;
 				for (T_CanonExpSiteNo2ScanNo siteNo2ScanNo: siteNo2ScanNoList) {
-					scanNo = siteNo2ScanNo.findScanNo(pInd);
+					scanNo = siteNo2ScanNo.findScanNo(siteNo);
 					if (scanNo != -1) break;
 				}
 				if (scanNo == -1){
@@ -203,15 +246,15 @@ public class ArrayExp implements IFileData{
 					return -1; 
 				}
 				String CanonScanNo = String.valueOf(scanNo);
-				writer.println(pInd + "," + CanonX + "," + CanonY + "," + CanonOL01 + "," + CanonOL02 + "," + CanonScanNo);
+				writer.println( (pInd + 1) + "," + CanonX + "," + CanonY + "," + CanonOL01 + "," + CanonOL02 + "," + CanonScanNo);
 			}
-			writer.println("<EOF>");
 			writer.close();
+			return 1;
 
 		}catch(Exception e) {
 			System.out.println(e.getMessage());
+			return -1;
 		}
-		return -1;
 	}
 	private int creatNikonFeedbackFile(ExpMeasGlass averageGlass) {
 		String feedbackFileName = averageGlass.getExpID() + "@" + averageGlass.getExpRcpName() + "@@@" + "01" + ".mv5";
@@ -257,6 +300,7 @@ public class ArrayExp implements IFileData{
 		int pointNum = 0;
 		List<List<Vector2D>> vetorListList = new ArrayList<>();
 		for(T_ArrayExpContinueGlassSet aGlassSet: aGlassSetList) { // for each glass
+			String [] siteNoStrArr = aGlassSet.getSiteNoList().split(",");
 			String [] ol01StrArr = aGlassSet.getOl01List().split(",");
 			String [] ol02StrArr = aGlassSet.getOl02List().split(",");
 			String [] coordXArr = aGlassSet.getCoordXList().split(",");
@@ -264,11 +308,12 @@ public class ArrayExp implements IFileData{
 			List<Vector2D> vecterList = new ArrayList<>(); 
 			pointNum = ol01StrArr.length;
 			for(int strInd = 0; strInd < pointNum; strInd ++) {
+				int siteNo = Integer.parseInt(siteNoStrArr[strInd]);
 				double xAsix = Double.parseDouble(coordXArr[strInd]);
 				double yAsix = Double.parseDouble(coordYArr[strInd]);
 				double ol01 = Double.parseDouble(ol01StrArr[strInd]);
 				double ol02 = Double.parseDouble(ol02StrArr[strInd]);
-				Vector2D aPoint = new Vector2D(xAsix, yAsix, ol01, ol02);
+				Vector2D aPoint = new Vector2D(siteNo, xAsix, yAsix, ol01, ol02);
 				vecterList.add(aPoint);
 			}
 			vetorListList.add(vecterList);
@@ -285,7 +330,8 @@ public class ArrayExp implements IFileData{
 			xResult = Arith.div(xResult, vetorListList.size(), 4);
 			yResult = Arith.div(yResult, vetorListList.size(), 4);
 			Vector2D vector2d = vetorListList.get(0).get(pInd);
-			Vector2D aPoint = new Vector2D(vector2d.getxAxis(), vector2d.getyAxis(), xResult, yResult);
+			
+			Vector2D aPoint = new Vector2D(vector2d.getIndex(), vector2d.getxAxis(), vector2d.getyAxis(), xResult, yResult);
 			avgPointList.add(aPoint);
 		}
 
@@ -342,7 +388,11 @@ public class ArrayExp implements IFileData{
 		Collections.sort(continueGlassList,
 			new Comparator<T_ArrayExpContinueGlassSet>() {
 			public int compare(T_ArrayExpContinueGlassSet o1, T_ArrayExpContinueGlassSet o2) {
-				return (int)(o1.getExposureTime() - o2.getExposureTime());
+				int result = (int)(o1.getExposureTime() - o2.getExposureTime()); 
+				if ( result == 0) {
+					return o1.getGlassID().compareTo(o2.getGlassID());
+				}
+				else return result;
 			}
 		});
 		
@@ -473,7 +523,7 @@ public class ArrayExp implements IFileData{
 			xSum /= (aGlassSetList.size() - 1);
 			ySum /= (aGlassSetList.size() - 1);
 			if(Math.sqrt(xSum) > sigma || Math.sqrt(ySum) > sigma) {
-				Utility.saveToLogHistoryDB(GlobleVar.LogDebugType, "checkSigmaSmallerSetting Fail: Point " + strInd + "sigma > setting sigma " + sigma);
+				Utility.saveToLogHistoryDB(GlobleVar.LogDebugType, "checkSigmaSmallerSetting Fail: Point " + strInd + " sigma > setting sigma " + sigma);
 				return 0;
 			}
 		}

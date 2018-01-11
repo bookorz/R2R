@@ -38,6 +38,12 @@ public class T_ArrayExpFeedbackHistory_CRUD {
 			}
 			feedbackHistory.setExp_Rcp_ID(str1);
 
+			str1 = aGlass.getExpRcpName();
+			if (str1 == null) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "create T_ArrayExpFeedbackHistory_CRUD Error");
+			}
+			feedbackHistory.setExp_Rcp_Name(str1);
+						
 			str1 = aGlass.getMeasStepID();
 			if (str1 == null) {
 				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "create T_ArrayExpFeedbackHistory_CRUD Error");
@@ -61,13 +67,7 @@ public class T_ArrayExpFeedbackHistory_CRUD {
 				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "create T_ArrayExpFeedbackHistory_CRUD Error: getOlOrDol = null");
 			}
 			feedbackHistory.setFeedback_Mode(str1);
-			
-//			str1 = aGlass.getExpRcpName();
-//			if (str1 == null) {
-//				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "create T_ArrayExpFeedbackHistory_CRUD Error: getExpRcpName = null");
-//			}
-//			feedbackHistory.setExp_Rcp_Name(str1);
-			
+						
 			str1 = aGlass.getExpStepID();
 			if (str1 == null) {
 				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "create T_ArrayExpFeedbackHistory_CRUD Error: getExpStepID = null");

@@ -218,6 +218,14 @@ public class ExpMeasGlass {
 		this.measPointList = measPointList;
 	}
 	
+	public String getSiteNoList() {
+		String result = "";
+		for (Vector2D vector2d: this.measPointList) {
+			result += String.valueOf(vector2d.index) + ",";
+		}
+		result = result.substring(0, result.length() - 1);
+		return result;
+	}
 	public String getOl01ListStr() {
 		String result = "";
 		for (Vector2D vector2d: this.measPointList) {
@@ -528,13 +536,14 @@ public class ExpMeasGlass {
 	
 	private static List<Vector2D> getCsvMeasPointList(MeasureFileDataBase csv, String coordXStr, String coordYStr, 
 														String ol01Str, String ol02Str){
+		List<String> siteNoList = csv.FetchList("SITE_DATA", "Site_No");
 		List<String> ol01List = csv.FetchList("SITE_DATA", ol01Str);
 		List<String> ol02List = csv.FetchList("SITE_DATA", ol02Str);
 		List<String> coordXList = csv.FetchList("SITE_DATA", coordXStr);
 		List<String> coordYList = csv.FetchList("SITE_DATA", coordYStr);
 
-		if(ol01List == null || ol02List == null || coordXList == null || coordYList == null){
-			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "ArrayExp getCsvMeasPointList: ol01List = null or ol02List = null or coordXList = null or coordYList = null");
+		if(siteNoList == null || ol01List == null || ol02List == null || coordXList == null || coordYList == null){
+			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "ArrayExp getCsvMeasPointList: out of domain");
 			return null;
 		}else if(ol01List.size() != ol02List.size()){
 			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "ArrayExp getCsvMeasPointList: ol01List.size() != ol02List.size()");
@@ -551,11 +560,12 @@ public class ExpMeasGlass {
 		for(int ind = 0; ind < ol01List.size(); ind++){
 			if (ol01List.get(ind).equals(""))
 				continue;
-			double xAxis = Double.parseDouble( coordXList.get(ind) );
-			double yAxis = Double.parseDouble( coordYList.get(ind) );
-			double xValue = Double.parseDouble( ol01List.get(ind) );
-			double yValue = Double.parseDouble( ol02List.get(ind) );
-			vectorList.add(new Vector2D(xAxis, yAxis, xValue, yValue));
+			int siteNo = Integer.parseInt( siteNoList.get(ind));
+			double xAxis = Double.parseDouble( coordXList.get(ind));
+			double yAxis = Double.parseDouble( coordYList.get(ind));
+			double xValue = Double.parseDouble( ol01List.get(ind));
+			double yValue = Double.parseDouble( ol02List.get(ind));
+			vectorList.add(new Vector2D(siteNo, xAxis, yAxis, xValue, yValue));
 		}
 		return vectorList;
 	}
