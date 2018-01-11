@@ -17,7 +17,7 @@ import com.innolux.R2R.model.LogHistory_CRUD;
 
 public class Utility {
 	private static Logger logger = Logger.getLogger(Utility.class);
-	public static boolean DEBUG = true;
+	public static boolean DEBUG = false;
 	
 	public static void main(String [] argv) {
 		

@@ -53,7 +53,7 @@ public class ArrayExp implements IFileData{
 	public void onFileData (MeasureFileDataBase csv) {
 		try {
 			
-			if (Utility.DEBUG == true) { // DEBUG use 
+			if (Utility.DEBUG == true) { // DEBUG use: to clean database 
 				Utility.DEBUG = false;
 				T_ArrayExpContinueGlassSet_CRUD.delete("", "", "", "", "", "", "");
 				T_LastExpTime_CRUD.delete();
