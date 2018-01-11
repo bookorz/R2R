@@ -49,7 +49,7 @@ public class ToolUtility {
 		return sb.toString();
 	}
 	
-	public static String demical2Hex(double value, double rate , String R2R_ID) {
+	public static String demical2Hex(double value, double rate, int bit , String R2R_ID) {
 		
 		String result = "";
 		int intVal = 0;
@@ -60,8 +60,11 @@ public class ToolUtility {
 			intVal = (int) Math.ceil(value);
 		}
 		// result = Integer.valueOf(String.valueOf(intVal), 16).toString();
-
-		result = Integer.toHexString(intVal & 0xffff);
+		if(bit==16){
+			result = Integer.toHexString(intVal & 0xffff);
+		}else{
+			result = Integer.toHexString(intVal);
+		}
 		if (result.length() <= 4) {
 			while (result.length() < 4) {
 				result = "0" + result;
@@ -74,7 +77,7 @@ public class ToolUtility {
 			}
 			logger.error("Run to run ID:" + R2R_ID + " demical2Hex return nothing value:" + value + " rate:"
 					+ rate + " result:" + result);
-			result = "";
+			
 		}
 
 		return result;

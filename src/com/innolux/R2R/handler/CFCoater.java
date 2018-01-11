@@ -23,6 +23,7 @@ import com.innolux.R2R.cf_coater.model.Last_Process_Time;
 import com.innolux.R2R.cf_coater.model.Last_Process_Time_CRUD;
 import com.innolux.R2R.cf_coater.model.Measure_point_Setting;
 import com.innolux.R2R.cf_coater.model.Measure_point_Setting_CRUD;
+import com.innolux.R2R.common.GlobleVar;
 import com.innolux.R2R.common.ToolUtility;
 import com.innolux.R2R.common.base.MeasureFileDataBase;
 import com.innolux.R2R.common.base.RegulationCollection;
@@ -48,31 +49,40 @@ public class CFCoater implements IFileData {
 	public static void main(String[] args) {
 
 		new CFCoater("C:\\PSH\\", "C:\\NG\\");
+		// ToolUtility.demical2Hex(2976.0761, 0.001,32, "CfCoater");
 	}
 
 	@Override
 	public void onFileData(MeasureFileDataBase data) {
+
 		Glass_Sammury_Data summary = new Glass_Sammury_Data();
+
 		try {
-			String EqpId = data.FetchInfo("HEADER", "EQ_ID");
+			String EqpId = data.FetchInfo("HEADER", "EQ_ID").trim();
 			if (EqpId.equals("")) {
 				return;
 			}
-			String SubEqpId = data.FetchInfo("HEADER", "SUBEQ_ID");
+			String SubEqpId = data.FetchInfo("HEADER", "SUBEQ_ID").trim();
 			if (SubEqpId.equals("")) {
+				ToolUtility.saveToLogHistoryDB("CFCoater", GlobleVar.LogErrorType,
+						"SubEqpId is null:" + data.getFileName());
 				return;
 			} else {
 				summary.setEqpId(SubEqpId);
 			}
-			//String PreEqpId1 = EqpId;
+			// String PreEqpId1 = EqpId;
 			String PreSubEqpId1 = getPreSubEqpId(EqpId, "COT");
 			if (PreSubEqpId1.equals("")) {
+				ToolUtility.saveToLogHistoryDB("CFCoater", GlobleVar.LogErrorType,
+						"PreSubEqpId1 is null:" + data.getFileName());
 				return;
 			} else {
 				summary.setPreEqpId(PreSubEqpId1);
 			}
-			String PPID = data.FetchValue("GLASS_DATA", "RECIPE_ID");
+			String PPID = data.FetchValue("GLASS_DATA", "RECIPE_ID").trim();
 			if (PPID.equals("")) {
+				ToolUtility.saveToLogHistoryDB("CFCoater", GlobleVar.LogErrorType,
+						"PPID is null:" + data.getFileName());
 				return;
 			} else {
 				summary.setPPID(PPID);
@@ -80,34 +90,49 @@ public class CFCoater implements IFileData {
 			}
 			String PreRecipeNo = getPreRecipeNo(EqpId, "COT", PPID);
 			if (PreRecipeNo.equals("")) {
+				ToolUtility.saveToLogHistoryDB("CFCoater", GlobleVar.LogErrorType,
+						"PreRecipeNo is null:" + data.getFileName());
 				return;
 			} else {
 				summary.setPreRecipe_No(PreRecipeNo);
 			}
-			String RecipeNo = data.FetchValue("EQP_GLASS_DATA", "RECIPE_NO");
+			String RecipeNo = data.FetchValue("EQP_GLASS_DATA", "RECIPE_NO").trim();
 			if (RecipeNo.equals("")) {
+				ToolUtility.saveToLogHistoryDB("CFCoater", GlobleVar.LogErrorType,
+						"RecipeNo is null:" + data.getFileName());
 				return;
 			} else {
 				summary.setRecipe_No(RecipeNo);
 			}
 
-			String Glass_ID = data.FetchValue("GLASS_DATA", "GLASS_ID");
+			String Glass_ID = data.FetchValue("GLASS_DATA", "GLASS_ID").trim();
 			if (Glass_ID.equals("")) {
+				ToolUtility.saveToLogHistoryDB("CFCoater", GlobleVar.LogErrorType,
+						"Glass_ID is null:" + data.getFileName());
 				return;
 			} else {
 				summary.setGlass_Id(Glass_ID);
 			}
 
 			summary.setTimeStamp(System.currentTimeMillis());
+			False_Range_Setting filterSetting = False_Range_Setting_CRUD.read(summary.getPPID());
 
-			if (PPID.substring(PPID.length() - 3, PPID.length() - 2).equals("P")) {
+			String layer = PPID.substring(PPID.length() - 3, PPID.length() - 2);
+			if (layer.equals("P")) {
 				// PSH Measure File
 				if (!GetPSHGlassSummary(data, summary)) {
+					ToolUtility.saveToLogHistoryDB("CFCoater", GlobleVar.LogErrorType,
+							"GetPSHGlassSummary error:" + data.getFileName());
 					return;
 				}
 			} else {
 				// BM R B G Measure File
+				if (!GetRBGGlassSummary(data, summary, layer, filterSetting)) {
+					ToolUtility.saveToLogHistoryDB("CFCoater", GlobleVar.LogErrorType,
+							"GetRBGGlassSummary error:" + data.getFileName());
 
+					return;
+				}
 			}
 
 			Last_Process_Time lastTObj = Last_Process_Time_CRUD.read(SubEqpId, RecipeNo);
@@ -116,6 +141,7 @@ public class CFCoater implements IFileData {
 				lastTObj = new Last_Process_Time();
 				lastTObj.setSubEqpId(SubEqpId);
 				lastTObj.setRecipeNo(RecipeNo);
+				lastTObj.setUpdateTime(System.currentTimeMillis());
 				Last_Process_Time_CRUD.create(lastTObj);
 				lastTObj = Last_Process_Time_CRUD.read(SubEqpId, RecipeNo);
 			}
@@ -125,7 +151,6 @@ public class CFCoater implements IFileData {
 				cfg = new AP_Status();
 				cfg.setPreEqpId(PreSubEqpId1);
 				cfg.setPreRecipe(PPID);
-				cfg.setCurrent_Count(0);
 				cfg.setLast_Time(System.currentTimeMillis());
 				AP_Status_CRUD.create(cfg);
 				cfg = AP_Status_CRUD.read(PreSubEqpId1, PPID);
@@ -140,31 +165,32 @@ public class CFCoater implements IFileData {
 
 			if (System.currentTimeMillis() - lastTObj.getUpdateTime() > setting.getExpire_Interval_Time()) {
 				// if expired, reset all
-				cfg.setCurrent_Count(0);
+
 				Glass_Sammury_Data_CRUD.delete(PreSubEqpId1, PPID);
 			}
 
-			if (PreFilter(summary)) {
+			if (PreFilter(summary, layer, filterSetting)) {
 				// store to waiting handle list
 				Glass_Sammury_Data_CRUD.create(summary);
-
-				cfg.setCurrent_Count(cfg.getCurrent_Count() + 1);
-				logger.info("PreSubEqpId1:" + PreSubEqpId1 + " current:" + cfg.getCurrent_Count() + " total:"
+				List<Glass_Sammury_Data> glassList = Glass_Sammury_Data_CRUD.read(summary.getPreEqpId(),
+						summary.getPPID());
+				// cfg.setCurrent_Count(cfg.getCurrent_Count() + 1);
+				logger.info("PreSubEqpId1:" + PreSubEqpId1 + " current:" + glassList.size() + " total:"
 						+ setting.getTotal_Count());
-				if (cfg.getCurrent_Count() >= setting.getTotal_Count()) { // calculate
-																			// feedback
-					RegulationCollection feedbackObj = Calculation(summary);
+				if (glassList.size() >= setting.getTotal_Count()) { // calculate
+																	// feedback
+					RegulationCollection feedbackObj = Calculation(summary, glassList, layer, filterSetting);
 					if (feedbackObj.GetRegulationCount() != 0) {
 						// feedback to coater
-//						BC bc = new BC(EqpId);
-//
-//						if (bc.Excute(feedbackObj)) {
-//							logger.info("SendToBC successful.");
-//						} else {
-//							logger.error("SendToBC fail.");
-//						}
+						// BC bc = new BC(EqpId);
+						//
+						// if (bc.Excute(feedbackObj)) {
+						// logger.info("SendToBC successful.");
+						// } else {
+						// logger.error("SendToBC fail.");
+						// }
 					}
-					cfg.setCurrent_Count(0);
+					// cfg.setCurrent_Count(0);
 					Glass_Sammury_Data_CRUD.delete(PreSubEqpId1, PPID);
 				}
 			}
@@ -174,19 +200,24 @@ public class CFCoater implements IFileData {
 			Last_Process_Time_CRUD.update(lastTObj);
 			AP_Status_CRUD.update(cfg);
 		} catch (Exception e) {
-			logger.error(ToolUtility.StackTrace2String(e));
+
+			ToolUtility.saveToLogHistoryDB("CFCoater", GlobleVar.LogErrorType, ToolUtility.StackTrace2String(e));
 		}
 	}
 
-	private boolean PreFilter(Glass_Sammury_Data summary) {
+	private boolean PreFilter(Glass_Sammury_Data summary, String layer, False_Range_Setting filterSetting) {
 		boolean result = false;
+		if (!layer.equals("P")) {
+			return true;
+		}
 		try {
 
 			if (summary != null) {
-				False_Range_Setting filterSetting = False_Range_Setting_CRUD.read(summary.getPPID());
-				if (filterSetting != null) {
-					summary.setTatget(filterSetting.getSpec());
 
+				if (filterSetting != null) {
+					if (summary.getTatget() == 0) {
+						summary.setTatget(filterSetting.getSpec());
+					}
 					if (summary.getStart_Avg() > filterSetting.getFilter_UpLimit()
 							|| summary.getStart_Avg() < filterSetting.getFilter_LowLimit()) {
 						logger.info("CFCoater PreFilter Engage_Avg is not pass by limit.");
@@ -211,17 +242,18 @@ public class CFCoater implements IFileData {
 				}
 			} else {
 				logger.error("CFCoater PreFilter summary is null.");
-				ToolUtility.saveToLogHistoryDB("CF_Coater", "Error",
-						"PreFilter summary is null.");
+				ToolUtility.saveToLogHistoryDB("CF_Coater", "Error", "PreFilter summary is null.");
 			}
 			result = true;
 		} catch (Exception e) {
-			logger.error("CFCoater PreFilter " + ToolUtility.StackTrace2String(e));
+
+			ToolUtility.saveToLogHistoryDB("CFCoater", GlobleVar.LogErrorType, ToolUtility.StackTrace2String(e));
 		}
 		return result;
 	}
 
-	private RegulationCollection Calculation(Glass_Sammury_Data summary) {
+	private RegulationCollection Calculation(Glass_Sammury_Data summary, List<Glass_Sammury_Data> glassList,
+			String layer, False_Range_Setting filterSetting) {
 		RegulationCollection result = new RegulationCollection();
 		double BetaOffset = 0;
 		double T3Offset = 0;
@@ -239,11 +271,7 @@ public class CFCoater implements IFileData {
 		String SqueegeNewHex = "";
 
 		try {
-			List<Glass_Sammury_Data> glassList = Glass_Sammury_Data_CRUD.read(summary.getPreEqpId(),
-					summary.getPPID());
-			False_Range_Setting filterSetting = False_Range_Setting_CRUD.read(summary.getPPID());
-			
-			
+
 			summary.setStart_Avg(0);
 			summary.setMid_Avg(0);
 			summary.setEnd_Avg(0);
@@ -258,7 +286,7 @@ public class CFCoater implements IFileData {
 			summary.setEnd_Avg(summary.getEnd_Avg() / (double) glassList.size());
 
 			logger.info("summary:" + summary + " filterSetting:" + filterSetting);
-			
+
 			if (summary.getStart_Avg() > filterSetting.getOOS_UpLimit()
 					|| summary.getStart_Avg() < filterSetting.getOOS_LowLimit()) {
 				logger.info("CFCoater Calculation Start_Avg is not pass by OOS limit.");
@@ -271,19 +299,19 @@ public class CFCoater implements IFileData {
 					|| summary.getEnd_Avg() < filterSetting.getOOS_LowLimit()) {
 				logger.info("CFCoater Calculation End_Avg is not pass by OOS limit.");
 				// Stop EQP
-			} /*else if (summary.getStart_Avg() < filterSetting.getOOC_UpLimit()
-					|| summary.getStart_Avg() > filterSetting.getOOC_LowLimit()) {
+			} else if (summary.getStart_Avg() < filterSetting.getOOC_UpLimit()
+					&& summary.getStart_Avg() > filterSetting.getOOC_LowLimit()) {
 				logger.info("CFCoater Calculation Start_Avg is not pass by OOC limit.");
 
 			} else if (summary.getMid_Avg() < filterSetting.getOOC_UpLimit()
-					|| summary.getMid_Avg() > filterSetting.getOOC_LowLimit()) {
+					&& summary.getMid_Avg() > filterSetting.getOOC_LowLimit()) {
 				logger.info("CFCoater Calculation Mid_Avg is not pass by OOC limit.");
 
 			} else if (summary.getEnd_Avg() < filterSetting.getOOC_UpLimit()
-					|| summary.getEnd_Avg() > filterSetting.getOOC_LowLimit()) {
+					&& summary.getEnd_Avg() > filterSetting.getOOC_LowLimit()) {
 				logger.info("CFCoater Calculation End_Avg is not pass by OOC limit.");
 
-			}*/ else {
+			} else {
 				logger.info("CFCoater Calculation Pass by all limit.");
 				Coater_PDS_Data CoaterPds = Coater_PDS_Data_CRUD.read(summary.getPreEqpId(), summary.getPPID());
 				Coater_Param_Setting CoaterSetting = Coater_Param_Setting_CRUD.read(summary.getPPID());
@@ -298,11 +326,10 @@ public class CFCoater implements IFileData {
 				// BetaOffset end
 
 				// T3Offset begin
-				T3Offset = -1.0 * ((summary.getStart_Avg()
-						+ (BetaOffset * CoaterSetting.getCot_Mid_Diff() * CoaterSetting.getBeta_Coff_For_Cot_Start()
-								/ CoaterSetting.getBETA_Cot_parameter())
+				T3Offset = -1.0 * ((summary.getStart_Avg() + (BetaOffset * CoaterSetting.getCot_Mid_Diff()
+						* CoaterSetting.getBeta_Coff_For_Cot_Start() / CoaterSetting.getBETA_Cot_parameter())
 						- summary.getTatget()) * CoaterSetting.getT3_Cot_parameter()
-								/ CoaterSetting.getCot_Start_Diff());
+						/ CoaterSetting.getCot_Start_Diff());
 				// 四捨五入到小數點下四位
 				// T3Offset = new BigDecimal(T3Offset).setScale(4,
 				// BigDecimal.ROUND_HALF_UP).doubleValue();
@@ -321,10 +348,12 @@ public class CFCoater implements IFileData {
 				// PDTOffset end
 
 				// SqueegeOffset begin
-				SqueegeOffset = -1.0 * ((summary.getEnd_Avg() + (BetaOffset * CoaterSetting.getCot_Mid_Diff()
-						* CoaterSetting.getBeta_Coff_For_Cot_End() / CoaterSetting.getBETA_Cot_parameter())
-						- summary.getTatget()) * CoaterSetting.getSqueegee_L_Cot_parameter()
-						/ CoaterSetting.getSQ_Cot_End_Diff());
+				if (layer.equals("P")) {
+					SqueegeOffset = -1.0 * ((summary.getEnd_Avg() + (BetaOffset * CoaterSetting.getCot_Mid_Diff()
+							* CoaterSetting.getBeta_Coff_For_Cot_End() / CoaterSetting.getBETA_Cot_parameter())
+							- summary.getTatget()) * CoaterSetting.getSqueegee_L_Cot_parameter()
+							/ CoaterSetting.getSQ_Cot_End_Diff());
+				}
 				// 四捨五入到小數點下四位
 				// SqueegeOffset = new BigDecimal(SqueegeOffset).setScale(4,
 				// BigDecimal.ROUND_HALF_UP).doubleValue();
@@ -346,9 +375,9 @@ public class CFCoater implements IFileData {
 				// 四捨五入到小數點下四位
 				Q2New = new BigDecimal(Q2New).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
 				logger.debug("Q2New:" + Q2New);
-				Q2NewHex = ToolUtility.demical2Hex(Q2New, 0.001, "CfCoater");
+				Q2NewHex = ToolUtility.demical2Hex(Q2New, 0.001, 32, "CfCoater");
 				logger.debug("Q2NewHex:" + Q2NewHex);
-				if (Q2NewHex.length() >= 4) {
+				if (Q2NewHex.length() <= 4) {
 					result.StoreRegulation(1, Q2NewHex);
 				} else {
 					result.StoreRegulation(1, Q2NewHex.substring(4, 8));
@@ -361,7 +390,7 @@ public class CFCoater implements IFileData {
 				// 四捨五入到小數點下四位
 				T3New = new BigDecimal(T3New).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
 				logger.debug("T3New:" + T3New);
-				T3NewHex = ToolUtility.demical2Hex(T3New, 0.001, "CfCoater");
+				T3NewHex = ToolUtility.demical2Hex(T3New, 0.001, 32, "CfCoater");
 				logger.debug("T3NewHex:" + T3NewHex);
 				if (T3NewHex.length() >= 4) {
 					result.StoreRegulation(3, T3NewHex);
@@ -376,7 +405,7 @@ public class CFCoater implements IFileData {
 				// 四捨五入到小數點下四位
 				PDTNew = new BigDecimal(PDTNew).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
 				logger.debug("PDTNew:" + PDTNew);
-				PDTNewHex = ToolUtility.demical2Hex(PDTNew, 0.001, "CfCoater");
+				PDTNewHex = ToolUtility.demical2Hex(PDTNew, 0.001, 32, "CfCoater");
 				logger.debug("PDTNewHex:" + PDTNewHex);
 				if (PDTNewHex.length() >= 4) {
 					result.StoreRegulation(5, PDTNewHex);
@@ -387,11 +416,15 @@ public class CFCoater implements IFileData {
 				// PDTNew end
 
 				// SqueegeNew begin
-				SqueegeNew = CoaterPds.getSqueegee_L() + SqueegeOffset;
+				if (layer.equals("P")) {
+					SqueegeNew = CoaterPds.getSqueegee_L() + SqueegeOffset;
+				} else {
+					SqueegeNew = CoaterPds.getSqueegee_L();
+				}
 				// 四捨五入到小數點下四位
 				SqueegeNew = new BigDecimal(SqueegeNew).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
 				logger.debug("SqueegeNew:" + SqueegeNew);
-				SqueegeNewHex = ToolUtility.demical2Hex(SqueegeNew, 0.001, "CfCoater");
+				SqueegeNewHex = ToolUtility.demical2Hex(SqueegeNew, 0.001, 32, "CfCoater");
 				logger.debug("SqueegeNewHex:" + SqueegeNewHex);
 				if (SqueegeNewHex.length() >= 4) {
 					result.StoreRegulation(7, SqueegeNewHex);
@@ -415,8 +448,173 @@ public class CFCoater implements IFileData {
 			}
 
 		} catch (Exception e) {
-			logger.error(ToolUtility.StackTrace2String(e));
+			ToolUtility.saveToLogHistoryDB("CFCoater", GlobleVar.LogErrorType, ToolUtility.StackTrace2String(e));
 			result = new RegulationCollection();
+		}
+		return result;
+	}
+
+	private boolean GetRBGGlassSummary(MeasureFileDataBase data, Glass_Sammury_Data summary, String layer,
+			False_Range_Setting filterSetting) {
+		boolean result = false;
+		try {
+			double start = 0;
+			double mid = 0;
+			double end = 0;
+
+			switch (layer) {
+			case "M":
+				try {
+					start = Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "03", "OD"))
+							+ Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "04", "OD"))
+							+ Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "05", "OD"));
+					start = start / 3;
+					summary.setStart_Avg(start);
+
+					mid = Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "02", "OD"));
+					summary.setMid_Avg(mid);
+
+					end = Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "01", "OD"));
+					summary.setEnd_Avg(end);
+				} catch (Exception e1) {
+					start = Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "3", "OD"))
+							+ Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "4", "OD"))
+							+ Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "5", "OD"));
+					start = start / 3;
+					summary.setStart_Avg(start);
+
+					mid = Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "2", "OD"));
+					summary.setMid_Avg(mid);
+
+					end = Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "1", "OD"));
+					summary.setEnd_Avg(end);
+				}
+
+				filterSetting.setSpec(
+						Double.parseDouble(data.getCsvValByRowCol("SPEC_DEFINITION", "PARAMETER", "OD", "Target")));
+				summary.setTatget(filterSetting.getSpec());
+				filterSetting.setOOS_UpLimit(
+						Double.parseDouble(data.getCsvValByRowCol("SPEC_DEFINITION", "PARAMETER", "OD", "SPEC_HIGH")));
+				filterSetting.setOOS_LowLimit(
+						Double.parseDouble(data.getCsvValByRowCol("SPEC_DEFINITION", "PARAMETER", "OD", "SPEC_LOW")));
+				filterSetting.setOOC_LowLimit(filterSetting.getSpec() - filterSetting.getOOC_LowLimit());
+				filterSetting.setOOC_UpLimit(filterSetting.getSpec() + filterSetting.getOOC_UpLimit());
+				break;
+			case "R":
+				try {
+					start = Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "03", "Rx"))
+							+ Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "04", "Rx"))
+							+ Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "05", "Rx"));
+					start = start / 3;
+					summary.setStart_Avg(start);
+
+					mid = Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "02", "Rx"));
+					summary.setMid_Avg(mid);
+
+					end = Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "01", "Rx"));
+					summary.setEnd_Avg(end);
+				} catch (Exception e1) {
+					start = Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "3", "Rx"))
+							+ Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "4", "Rx"))
+							+ Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "5", "Rx"));
+					start = start / 3;
+					summary.setStart_Avg(start);
+
+					mid = Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "2", "Rx"));
+					summary.setMid_Avg(mid);
+
+					end = Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "1", "Rx"));
+					summary.setEnd_Avg(end);
+				}
+				filterSetting.setSpec(
+						Double.parseDouble(data.getCsvValByRowCol("SPEC_DEFINITION", "PARAMETER", "Rx", "Target")));
+				summary.setTatget(filterSetting.getSpec());
+				filterSetting.setOOS_UpLimit(
+						Double.parseDouble(data.getCsvValByRowCol("SPEC_DEFINITION", "PARAMETER", "Rx", "SPEC_HIGH")));
+				filterSetting.setOOS_LowLimit(
+						Double.parseDouble(data.getCsvValByRowCol("SPEC_DEFINITION", "PARAMETER", "Rx", "SPEC_LOW")));
+				filterSetting.setOOC_LowLimit(filterSetting.getSpec() - filterSetting.getOOC_LowLimit());
+				filterSetting.setOOC_UpLimit(filterSetting.getSpec() + filterSetting.getOOC_UpLimit());
+				break;
+			case "B":
+				try {
+					start = Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "03", "BSY"))
+							+ Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "04", "BSY"))
+							+ Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "05", "BSY"));
+					start = start / 3;
+					summary.setStart_Avg(start);
+
+					mid = Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "02", "BSY"));
+					summary.setMid_Avg(mid);
+
+					end = Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "01", "BSY"));
+					summary.setEnd_Avg(end);
+				} catch (Exception e1) {
+					start = Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "3", "BSY"))
+							+ Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "4", "BSY"))
+							+ Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "5", "BSY"));
+					start = start / 3;
+					summary.setStart_Avg(start);
+
+					mid = Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "2", "BSY"));
+					summary.setMid_Avg(mid);
+
+					end = Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "1", "BSY"));
+					summary.setEnd_Avg(end);
+				}
+				filterSetting.setSpec(
+						Double.parseDouble(data.getCsvValByRowCol("SPEC_DEFINITION", "PARAMETER", "By", "Target")));
+				summary.setTatget(filterSetting.getSpec());
+				filterSetting.setOOS_UpLimit(
+						Double.parseDouble(data.getCsvValByRowCol("SPEC_DEFINITION", "PARAMETER", "By", "SPEC_HIGH")));
+				filterSetting.setOOS_LowLimit(
+						Double.parseDouble(data.getCsvValByRowCol("SPEC_DEFINITION", "PARAMETER", "By", "SPEC_LOW")));
+				filterSetting.setOOC_LowLimit(filterSetting.getSpec() - filterSetting.getOOC_LowLimit());
+				filterSetting.setOOC_UpLimit(filterSetting.getSpec() + filterSetting.getOOC_UpLimit());
+				break;
+			case "G":
+				try {
+					start = Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "03", "GSY"))
+							+ Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "04", "GSY"))
+							+ Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "05", "GSY"));
+					start = start / 3;
+					summary.setStart_Avg(start);
+
+					mid = Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "02", "GSY"));
+					summary.setMid_Avg(mid);
+
+					end = Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "01", "GSY"));
+					summary.setEnd_Avg(end);
+				} catch (Exception e1) {
+					start = Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "3", "GSY"))
+							+ Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "4", "GSY"))
+							+ Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "5", "GSY"));
+					start = start / 3;
+					summary.setStart_Avg(start);
+
+					mid = Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "2", "GSY"));
+					summary.setMid_Avg(mid);
+
+					end = Double.parseDouble(data.getCsvValByRowCol("SITE_DATA", "SITE_NAME", "1", "GSY"));
+					summary.setEnd_Avg(end);
+				}
+				filterSetting.setSpec(
+						Double.parseDouble(data.getCsvValByRowCol("SPEC_DEFINITION", "PARAMETER", "Gy", "Target")));
+				summary.setTatget(filterSetting.getSpec());
+				filterSetting.setOOS_UpLimit(
+						Double.parseDouble(data.getCsvValByRowCol("SPEC_DEFINITION", "PARAMETER", "Gy", "SPEC_HIGH")));
+				filterSetting.setOOS_LowLimit(
+						Double.parseDouble(data.getCsvValByRowCol("SPEC_DEFINITION", "PARAMETER", "Gy", "SPEC_LOW")));
+				filterSetting.setOOC_LowLimit(filterSetting.getSpec() - filterSetting.getOOC_LowLimit());
+				filterSetting.setOOC_UpLimit(filterSetting.getSpec() + filterSetting.getOOC_UpLimit());
+				break;
+			}
+
+			result = true;
+		} catch (Exception e) {
+
+			ToolUtility.saveToLogHistoryDB("CF_Coater", "Error", "計算單片平均錯誤" + ToolUtility.StackTrace2String(e));
+			summary = null;
 		}
 		return result;
 	}
@@ -455,7 +653,7 @@ public class CFCoater implements IFileData {
 			}
 			result = true;
 		} catch (Exception e) {
-			logger.error("CFCoater GetPSHGlassSummary " + ToolUtility.StackTrace2String(e));
+
 			ToolUtility.saveToLogHistoryDB("CF_Coater", "Error", "計算單片平均錯誤" + ToolUtility.StackTrace2String(e));
 			summary = null;
 		}
@@ -490,7 +688,7 @@ public class CFCoater implements IFileData {
 			}
 
 		} catch (Exception e) {
-			logger.error(ToolUtility.StackTrace2String(e));
+			ToolUtility.saveToLogHistoryDB("CFCoater", GlobleVar.LogErrorType, ToolUtility.StackTrace2String(e));
 		}
 		return result;
 	}
@@ -517,7 +715,7 @@ public class CFCoater implements IFileData {
 			}
 
 		} catch (Exception e) {
-			logger.error(ToolUtility.StackTrace2String(e));
+			ToolUtility.saveToLogHistoryDB("CFCoater", GlobleVar.LogErrorType, ToolUtility.StackTrace2String(e));
 		}
 		return result;
 	}
