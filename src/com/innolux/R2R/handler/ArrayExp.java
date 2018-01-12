@@ -39,7 +39,16 @@ public class ArrayExp implements IFileData{
 	
 	public static void main(String [] argv) {
 		//System.out.println(MeasureFileReader.class);	
-		ArrayExp a = new ArrayExp("C:\\R2RNikonTest\\workspace\\", "C:\\R2RNikonTest\\ngFile\\");
+		// ArrayExp a = new ArrayExp("C:\\R2RNikonTest\\workspace\\", "C:\\R2RNikonTest\\ngFile\\");
+		
+		MES_lwExpR2rSetting aMES_lwExpR2rSetting = new MES_lwExpR2rSetting();
+		//aMES_lwExpR2rSetting.setEqpId("r2rTest"));
+		aMES_lwExpR2rSetting.setHoldFlag("T"); // TODO
+		aMES_lwExpR2rSetting.setProdId("r2rTest");
+		aMES_lwExpR2rSetting.setR2rFeedbackTime(new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date()));
+		aMES_lwExpR2rSetting.setRecipeId("r2rTest");
+		List<MES_lwExpR2rSetting> mesLwExpR2rSettingList = MES_lwExpR2rSetting_CRUD.read(aMES_lwExpR2rSetting);
+		
 	}
 	
 	public ArrayExp(String csvUpperFilePath, String ngFilePath) {
@@ -62,7 +71,7 @@ public class ArrayExp implements IFileData{
 			}
 			
 			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "Start process file " + csv.getFileName());
-						
+			
 			// when receive a csv 
 			ExpMeasGlass emGlass = ExpMeasGlass.csv2ExpMeasGlass(csv);
 			if (emGlass == null) {
@@ -71,6 +80,22 @@ public class ArrayExp implements IFileData{
 			}
 			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "csv2ExpMeasGlass success: GlassID = " + emGlass.getGlassID());
 			
+			// check setting active flag
+			T_AutoFeedbackSetting autoFbkSeting = T_AutoFeedbackSetting_CRUD.read(emGlass.getProductName(), 
+					emGlass.getExpID(), 
+					emGlass.getExpRcpID(), 
+					emGlass.getMeasRcpID(), 
+					emGlass.getMeasStepID(), 
+					emGlass.getAdcOrFdc());
+			if (autoFbkSeting == null) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Error: Glass ID = " + emGlass.getGlassID() + " cannot read T_AutoFeedbackSetting");
+				return;
+			}
+			if (!autoFbkSeting.getActiveFlag().toUpperCase().equals("ON")) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Fail: Glass ID = " + emGlass.getGlassID() + " active flag not on");
+				return;
+			}
+				
 			boolean isDataVaild = emGlass.checkIsDataVaild();
 			if(!isDataVaild) {
 				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Fail: glass(" + emGlass.getGlassID() + ") data not vaild for feedback");
@@ -109,16 +134,6 @@ public class ArrayExp implements IFileData{
 			}
 
 			// times the ratio
-			T_AutoFeedbackSetting autoFbkSeting = T_AutoFeedbackSetting_CRUD.read(emGlass.getProductName(), 
-																					emGlass.getExpID(), 
-																					emGlass.getExpRcpID(), 
-																					emGlass.getMeasRcpID(), 
-																					emGlass.getMeasStepID(), 
-																					emGlass.getAdcOrFdc());
-			if (autoFbkSeting == null) {
-				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Error: Glass ID = " + emGlass.getGlassID() + " cannot read T_AutoFeedbackSetting");
-				return;
-			}
 			averageGlass.multipliedRatio(autoFbkSeting.getRatio());
 			
 			// createFeedbackFile
@@ -172,7 +187,6 @@ public class ArrayExp implements IFileData{
 			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Success: delete T_ArrayExpContinueGlassSet_CRUD success");
 			
 			// TODO: save table to MES
-			// 
 //			MES_lwExpR2rSetting aMES_lwExpR2rSetting = new MES_lwExpR2rSetting();
 //			aMES_lwExpR2rSetting.setEqpId(averageGlass.getExpID());
 //			aMES_lwExpR2rSetting.setHoldFlag(averageGlass.getHoldFlag()); // TODO
@@ -187,6 +201,7 @@ public class ArrayExp implements IFileData{
 //					Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "create MES_lwExpR2rSetting_CRUD success");
 //				}else {
 //					Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Error: create MES_lwExpR2rSetting_CRUD error");
+//					return;
 //				}
 //					
 //			}else {
@@ -196,6 +211,7 @@ public class ArrayExp implements IFileData{
 //					Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "update MES_lwExpR2rSetting_CRUD success");
 //				}else {
 //					Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Error: update MES_lwExpR2rSetting_CRUD error");
+//					return;
 //				}
 //			}
 			
