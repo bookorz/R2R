@@ -15,7 +15,7 @@ public class R2R_Main {
 	public static void main(String[] args) {
 	
 		ReportMonitor();
-//		
+//		Y:\array\cdol\r2r\source
 
 		//new RvDispatch().StartListen("tcp:8585", "INNOLUX.T2.PROD.PDS.PDSGLASSSEND.CELL.>", "8585", "");
 		new RvDispatch().StartListen("tcp:8585", "INNOLUX.T2.PROD.PDS.PDSGLASSSEND.CF.>", "8585", "");

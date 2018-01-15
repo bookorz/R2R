@@ -6,7 +6,7 @@ import com.innolux.R2R.common.ToolUtility;
 import com.innolux.R2R.interfaces.ITibRvListener;
 import com.tibco.tibrv.*;
 
-public class TibcoRvListener implements TibrvMsgCallback {
+public class TibcoRvListener extends Thread implements TibrvMsgCallback {
 	private Logger logger = Logger.getLogger(this.getClass());
 	private String daemon;
 	private String subject;
@@ -28,7 +28,7 @@ public class TibcoRvListener implements TibrvMsgCallback {
 		this._sourceObj = sourceObj;
 	}
 
-	public void StartService() {
+	public void run() {
 		try {
 			Tibrv.open(Tibrv.IMPL_NATIVE);
 		} catch (TibrvException e) {

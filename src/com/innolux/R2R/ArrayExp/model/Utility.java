@@ -82,6 +82,18 @@ public class Utility {
 		alogHisty.setLogString(logString);
 		LogHistory_CRUD.create(alogHisty);
 		
+		switch(errLevel.toUpperCase()){
+		case "INFO":
+			logger.info(logString);
+			break;
+		case "DEBUG":
+			logger.debug(logString);
+			break;
+		case "ERROR":
+			logger.error(logString);
+			break;
+		}
+		
 		return;
 	}
 	

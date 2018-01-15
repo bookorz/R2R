@@ -206,20 +206,23 @@ public class ArrayExp implements IFileData{
 			}
 			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Success: delete T_ArrayExpContinueGlassSet_CRUD success");
 			
-			// save table to MES
-			MES_lwExpR2rSetting aMES_lwExpR2rSetting = new MES_lwExpR2rSetting();
-			aMES_lwExpR2rSetting.setEqpId(averageGlass.getExpID());
-			aMES_lwExpR2rSetting.setHoldFlag(autoFbkSeting.getHoldFlag());
-			aMES_lwExpR2rSetting.setProdId(averageGlass.getProductName());
-			aMES_lwExpR2rSetting.setR2rFeedbackTime(new SimpleDateFormat("yyyyMMddHHmmssSSS").format(feedbackTime));
-			aMES_lwExpR2rSetting.setRecipeId(averageGlass.getExpRcpID()); 
-			state = MES_lwExpR2rSetting_CRUD.create(aMES_lwExpR2rSetting);// don't deal with old data, just add new data
-			if (state) {
-				Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "create MES_lwExpR2rSetting_CRUD success");
-			}else {
-				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Error: create MES_lwExpR2rSetting_CRUD error");
-				return;
+			if(false) { // wait for MES online
+				// save table to MES
+				MES_lwExpR2rSetting aMES_lwExpR2rSetting = new MES_lwExpR2rSetting();
+				aMES_lwExpR2rSetting.setEqpId(averageGlass.getExpID());
+				aMES_lwExpR2rSetting.setHoldFlag(autoFbkSeting.getHoldFlag());
+				aMES_lwExpR2rSetting.setProdId(averageGlass.getProductName());
+				aMES_lwExpR2rSetting.setR2rFeedbackTime(new SimpleDateFormat("yyyyMMddHHmmssSSS").format(feedbackTime));
+				aMES_lwExpR2rSetting.setRecipeId(averageGlass.getExpRcpID()); 
+				state = MES_lwExpR2rSetting_CRUD.create(aMES_lwExpR2rSetting);// don't deal with old data, just add new data
+				if (state) {
+					Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "create MES_lwExpR2rSetting_CRUD success");
+				}else {
+					Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Error: create MES_lwExpR2rSetting_CRUD error");
+					return;
+				}
 			}
+			
 		
 			return;
 		}catch(Exception e) {
