@@ -42,12 +42,31 @@ public class ArrayExp implements IFileData{
 		// ArrayExp a = new ArrayExp("C:\\R2RNikonTest\\workspace\\", "C:\\R2RNikonTest\\ngFile\\");
 		
 		MES_lwExpR2rSetting aMES_lwExpR2rSetting = new MES_lwExpR2rSetting();
-		//aMES_lwExpR2rSetting.setEqpId("r2rTest"));
-		aMES_lwExpR2rSetting.setHoldFlag("T"); // TODO
+		aMES_lwExpR2rSetting.setEqpId("r2rTest");
+		aMES_lwExpR2rSetting.setHoldFlag("T");
 		aMES_lwExpR2rSetting.setProdId("r2rTest");
 		aMES_lwExpR2rSetting.setR2rFeedbackTime(new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date()));
 		aMES_lwExpR2rSetting.setRecipeId("r2rTest");
 		List<MES_lwExpR2rSetting> mesLwExpR2rSettingList = MES_lwExpR2rSetting_CRUD.read(aMES_lwExpR2rSetting);
+		boolean state;
+		if (mesLwExpR2rSettingList == null) {
+			// create
+			state = MES_lwExpR2rSetting_CRUD.create(aMES_lwExpR2rSetting);
+			if (state) {
+				System.out.println("create success");
+			}else {
+				System.out.println("create fail");
+			}
+				
+		}else {
+			// update
+			state = MES_lwExpR2rSetting_CRUD.update(aMES_lwExpR2rSetting);
+			if (state) {
+				System.out.println("update success");
+			}else {
+				System.out.println("update fail");
+			}
+		}
 		
 	}
 	
@@ -80,19 +99,19 @@ public class ArrayExp implements IFileData{
 			}
 			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "csv2ExpMeasGlass success: GlassID = " + emGlass.getGlassID());
 			
-			// check setting active flag
+			// check active flag
 			T_AutoFeedbackSetting autoFbkSeting = T_AutoFeedbackSetting_CRUD.read(emGlass.getProductName(), 
-					emGlass.getExpID(), 
-					emGlass.getExpRcpID(), 
-					emGlass.getMeasRcpID(), 
-					emGlass.getMeasStepID(), 
-					emGlass.getAdcOrFdc());
+																					emGlass.getExpID(), 
+																					emGlass.getExpRcpID(), 
+																					emGlass.getMeasRcpID(), 
+																					emGlass.getMeasStepID(), 
+																					emGlass.getAdcOrFdc());
 			if (autoFbkSeting == null) {
 				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Error: Glass ID = " + emGlass.getGlassID() + " cannot read T_AutoFeedbackSetting");
 				return;
 			}
 			if (!autoFbkSeting.getActiveFlag().toUpperCase().equals("ON")) {
-				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Fail: Glass ID = " + emGlass.getGlassID() + " active flag not on");
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Fail: Glass ID = " + emGlass.getGlassID() + " active flag != on");
 				return;
 			}
 				
@@ -168,7 +187,8 @@ public class ArrayExp implements IFileData{
 			}
 			
 			// save feedback history to DB
-			state = T_ArrayExpFeedbackHistory_CRUD.create(averageGlass, "Automation", "R2R-Nikon");
+			Date feedbackTime = new Date();
+			state = T_ArrayExpFeedbackHistory_CRUD.create(averageGlass, "Automation", "R2R", feedbackTime);
 			if (!state) {
 				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Error: cannot create T_ArrayExpFeedbackHistory_CRUD");
 			}
@@ -186,35 +206,21 @@ public class ArrayExp implements IFileData{
 			}
 			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Success: delete T_ArrayExpContinueGlassSet_CRUD success");
 			
-			// TODO: save table to MES
-//			MES_lwExpR2rSetting aMES_lwExpR2rSetting = new MES_lwExpR2rSetting();
-//			aMES_lwExpR2rSetting.setEqpId(averageGlass.getExpID());
-//			aMES_lwExpR2rSetting.setHoldFlag(averageGlass.getHoldFlag()); // TODO
-//			aMES_lwExpR2rSetting.setProdId(averageGlass.getProductName());
-//			aMES_lwExpR2rSetting.setR2rFeedbackTime(new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date()));
-//			aMES_lwExpR2rSetting.setRecipeId(averageGlass.getExpRcpID());
-//			List<MES_lwExpR2rSetting> mesLwExpR2rSettingList = MES_lwExpR2rSetting_CRUD.read(aMES_lwExpR2rSetting);
-//			if (mesLwExpR2rSettingList == null) {
-//				// create
-//				state = MES_lwExpR2rSetting_CRUD.create(aMES_lwExpR2rSetting);
-//				if (state) {
-//					Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "create MES_lwExpR2rSetting_CRUD success");
-//				}else {
-//					Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Error: create MES_lwExpR2rSetting_CRUD error");
-//					return;
-//				}
-//					
-//			}else {
-//				// update
-//				state = MES_lwExpR2rSetting_CRUD.update(aMES_lwExpR2rSetting);
-//				if (state) {
-//					Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "update MES_lwExpR2rSetting_CRUD success");
-//				}else {
-//					Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Error: update MES_lwExpR2rSetting_CRUD error");
-//					return;
-//				}
-//			}
-			
+			// save table to MES
+			MES_lwExpR2rSetting aMES_lwExpR2rSetting = new MES_lwExpR2rSetting();
+			aMES_lwExpR2rSetting.setEqpId(averageGlass.getExpID());
+			aMES_lwExpR2rSetting.setHoldFlag(autoFbkSeting.getHoldFlag());
+			aMES_lwExpR2rSetting.setProdId(averageGlass.getProductName());
+			aMES_lwExpR2rSetting.setR2rFeedbackTime(new SimpleDateFormat("yyyyMMddHHmmssSSS").format(feedbackTime));
+			aMES_lwExpR2rSetting.setRecipeId(averageGlass.getExpRcpID()); 
+			state = MES_lwExpR2rSetting_CRUD.create(aMES_lwExpR2rSetting);// don't deal with old data, just add new data
+			if (state) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "create MES_lwExpR2rSetting_CRUD success");
+			}else {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Error: create MES_lwExpR2rSetting_CRUD error");
+				return;
+			}
+		
 			return;
 		}catch(Exception e) {
 			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, ToolUtility.StackTrace2String(e));

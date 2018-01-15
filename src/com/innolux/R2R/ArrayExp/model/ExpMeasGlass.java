@@ -493,7 +493,7 @@ public class ExpMeasGlass {
 		T_AutoFeedbackSetting autoFbkSeting;
 		if (Utility.DEBUG) {
 			autoFbkSeting = new T_AutoFeedbackSetting();
-			autoFbkSeting.setOl_L_UpperLimit(-9999);;
+			autoFbkSeting.setOl_L_UpperLimit(-9999);
 			autoFbkSeting.setOl_U_UpperLimit(9999);
 			autoFbkSeting.setOl_L_LowerLimit(-9999);
 			autoFbkSeting.setOl_U_LowerLimit(9999);

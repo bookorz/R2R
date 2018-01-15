@@ -1,5 +1,6 @@
 package com.innolux.R2R.ArrayExp.model;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +17,7 @@ public class T_ArrayExpFeedbackHistory_CRUD {
 	private static GenericDao<T_ArrayExpFeedbackHistory> T_ArrayExpFeedbackHistory_DAO = 
 			new JdbcGenericDaoImpl <T_ArrayExpFeedbackHistory> (GlobleVar.R2R_DB);
 	
-	public static boolean create(ExpMeasGlass aGlass, String operationMode, String feedbackUserStr){
+	public static boolean create(ExpMeasGlass aGlass, String operationMode, String feedbackUserStr, Date feedbackTime){
 		try{
 			T_ArrayExpFeedbackHistory feedbackHistory = new T_ArrayExpFeedbackHistory();
 			
@@ -74,7 +75,7 @@ public class T_ArrayExpFeedbackHistory_CRUD {
 			}
 			feedbackHistory.setExp_Step_ID(str1);
 			
-			feedbackHistory.setFeedback_Time(System.currentTimeMillis());
+			feedbackHistory.setFeedback_Time(feedbackTime.getTime());
 			feedbackHistory.setOperation_Mode(operationMode);
 			feedbackHistory.setFeedback_User_ID(feedbackUserStr);		
 			T_ArrayExpFeedbackHistory_DAO.save(feedbackHistory);
