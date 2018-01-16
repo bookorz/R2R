@@ -14,7 +14,7 @@ import com.innolux.dao.JdbcGenericDaoImpl;
 public class MES_lwExpR2rSetting_CRUD {
 	private static Logger logger = Logger.getLogger(MES_fwflatnode_CRUD.class);
 	private static GenericDao<MES_lwExpR2rSetting> MES_lwExpR2rSetting_DAO = 
-			new JdbcGenericDaoImpl <MES_lwExpR2rSetting> (GlobleVar.arrayMesTestDB);
+			new JdbcGenericDaoImpl <MES_lwExpR2rSetting> (GlobleVar.ARRAYMesDB);
 	
 	public static boolean create(MES_lwExpR2rSetting aSet){
 		try{

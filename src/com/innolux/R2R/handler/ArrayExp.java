@@ -256,8 +256,8 @@ public class ArrayExp implements IFileData{
 				// Canon Y = MCD Y
 				Vector2D point = emGlass.getMeasPointList().get(pInd);
 				int siteNo = point.getIndex();
-				String CanonX = String.format("%.3f", point.getxAxis() / 1000);
-				String CanonY = String.format("%.3f", point.getyAxis() / 1000);
+				String CanonX = String.format("%.3f", point.getxAxis());
+				String CanonY = String.format("%.3f", point.getyAxis());
 				String CanonOL01 = String.format("%.3f", point.getxValue());
 				String CanonOL02 = String.format("%.3f", point.getyValue());
 				
