@@ -239,7 +239,7 @@ public class ArrayExp implements IFileData{
 			// DEBUG use
 			//PrintWriter writer = new PrintWriter("C:\\R2RNikonTest\\" + feedbackFileName + ".csv", "UTF-8");
 			PrintWriter writer = new PrintWriter("C:\\R2R-FTP\\" + emGlass.getExpID() + "\\" + feedbackFileName + ".csv", "UTF-8");
-			writer.println( "Recipe No.," + emGlass.getExpRcpID() ); //emGlass.getExpRcpName()
+			writer.println( "Recipe No.," + emGlass.getExpRcpID() );
 			writer.println( "Glass ID," + emGlass.getGlassID() );
 			writer.println( "Insp. Date," + timeStamp );
 			int pointNum = emGlass.getMeasPointList().size();
