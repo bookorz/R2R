@@ -19,7 +19,7 @@ public class RvDispatch implements ITibRvListener {
 	public void StartListen(String _daemon, String _subject, String _service, String _network) {
 		TibcoRvListener rv = new TibcoRvListener(_daemon, _subject, _service, _network);
 		rv.SetService(this);
-		rv.StartService();
+		rv.start();
 	}
 
 	public void onRvMsg(String msg) {

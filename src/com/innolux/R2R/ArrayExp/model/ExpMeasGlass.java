@@ -315,20 +315,25 @@ public class ExpMeasGlass {
 			}
 			aGlass.setExpRcpID(str1);
 			
-			T_ExpRcpID2Name expRcpID2Name;
-			if (Utility.DEBUG) {
-				expRcpID2Name = new T_ExpRcpID2Name();
-				expRcpID2Name.setExpRcpName("ExpRecipeName");
-			}else {
-				expRcpID2Name = T_ExpRcpID2Name_CRUD.read(aGlass.getProductName(),
-															aGlass.getExpStepID(),
-															aGlass.getExpRcpID());	
-				if (expRcpID2Name == null) {
-					Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "csv2ExpMeasGlass Error: cannot read data in T_ExpRcpID2Name");
-					return null;
+			if (aGlass.getExpSupplier().toUpperCase().equals("NIKON")) {
+				T_ExpRcpID2Name expRcpID2Name;
+				if (Utility.DEBUG) {
+					expRcpID2Name = new T_ExpRcpID2Name();
+					expRcpID2Name.setExpRcpName("ExpRecipeName");
+				}else {
+					expRcpID2Name = T_ExpRcpID2Name_CRUD.read(aGlass.getProductName(),
+																aGlass.getExpStepID(),
+																aGlass.getExpRcpID());	
+					if (expRcpID2Name == null) {
+						Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "csv2ExpMeasGlass Error: cannot read data in T_ExpRcpID2Name");
+						return null;
+					}
 				}
+				aGlass.setExpRcpName(expRcpID2Name.getExpRcpName());
+			}else {
+				aGlass.setExpRcpName("");
 			}
-			aGlass.setExpRcpName(expRcpID2Name.getExpRcpName());
+			
 			
 			str1 = csv.FetchValue("GLASS_DATA", "Step_Seq");
 			if (str1 == null || str1.equals("")) {
@@ -493,7 +498,7 @@ public class ExpMeasGlass {
 		T_AutoFeedbackSetting autoFbkSeting;
 		if (Utility.DEBUG) {
 			autoFbkSeting = new T_AutoFeedbackSetting();
-			autoFbkSeting.setOl_L_UpperLimit(-9999);;
+			autoFbkSeting.setOl_L_UpperLimit(-9999);
 			autoFbkSeting.setOl_U_UpperLimit(9999);
 			autoFbkSeting.setOl_L_LowerLimit(-9999);
 			autoFbkSeting.setOl_U_LowerLimit(9999);

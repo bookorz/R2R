@@ -79,7 +79,7 @@ public class T_AutoFeedbackSetting{
 	private long ExpireTime;
 
 	@Column("Hold_Flag")
-	private boolean holdFlag;
+	private String holdFlag;
 	
 	public String getPrimarykey() {
 		return Primarykey;
@@ -274,11 +274,11 @@ public class T_AutoFeedbackSetting{
 	}
 
 	
-	public boolean getHoldFlag() {
+	public String getHoldFlag() {
 		return holdFlag;
 	}
 
-	public void setHoldFlag(boolean holdFlag) {
+	public void setHoldFlag(String holdFlag) {
 		this.holdFlag = holdFlag;
 	}
 

@@ -9,6 +9,11 @@ public class GlobleVar {
 	private static String R2RDBPwd = "runprod";
 	public static JdbcDaoHelper R2R_DB = new JdbcDaoHelper(R2RTNS, R2RDBUser, R2RDBPwd, 2);
 
+	// Mes Array Test DB
+	public static JdbcDaoHelper arrayMesTestDB = new JdbcDaoHelper( 
+			"jdbc:oracle:thin:@(DESCRIPTION =    (ADDRESS_LIST =      (ADDRESS = (PROTOCOL = TCP)(HOST = 172.20.73.1)(PORT = 1521))      (ADDRESS = (PROTOCOL = TCP)(HOST = 172.20.73.2)(PORT = 1521))      (LOAD_BALANCE = yes)    )    (CONNECT_DATA =      (SERVER = DEDICATED)      (SERVICE_NAME = t2tary)    )  )",
+			"arytst2", "arytst2", 1); // arytst2, r2rtst2
+	
 	// DEMS DB
 	private static String DEMSTNS = "jdbc:oracle:thin:@ (DESCRIPTION = (ADDRESS_LIST = (ADDRESS = (PROTOCOL = TCP)(HOST = 172.20.8.68)(PORT = 1521)) ) (CONNECT_DATA = (SERVER = DEDICATED) (SERVICE_NAME = T2PDEMS) ) ) ";
 	private static String DEMSDBUser = "DEMSPROD";
