@@ -331,7 +331,7 @@ public class ExpMeasGlass {
 				}
 				aGlass.setExpRcpName(expRcpID2Name.getExpRcpName());
 			}else {
-				aGlass.setExpRcpName("");
+				aGlass.setExpRcpName(" ");
 			}
 			
 			

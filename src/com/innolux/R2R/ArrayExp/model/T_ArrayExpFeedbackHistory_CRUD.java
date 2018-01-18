@@ -17,31 +17,34 @@ public class T_ArrayExpFeedbackHistory_CRUD {
 	private static GenericDao<T_ArrayExpFeedbackHistory> T_ArrayExpFeedbackHistory_DAO = 
 			new JdbcGenericDaoImpl <T_ArrayExpFeedbackHistory> (GlobleVar.R2R_DB);
 	
-	public static boolean create(ExpMeasGlass aGlass, String operationMode, String feedbackUserStr, Date feedbackTime){
+	public static boolean create(ExpMeasGlass aGlass, 
+									String operationMode, 
+									String feedbackUserStr, 
+									Date feedbackTime){
 		try{
 			T_ArrayExpFeedbackHistory feedbackHistory = new T_ArrayExpFeedbackHistory();
 			
 			String str1 = aGlass.getProductName();
 			if (str1 == null) {
-				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "create T_ArrayExpFeedbackHistory_CRUD Error");
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "create T_ArrayExpFeedbackHistory_CRUD Error: getProductName");
 			}
 			feedbackHistory.setProduct(str1);
 
 			str1 = aGlass.getExpID();
 			if (str1 == null) {
-				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "create T_ArrayExpFeedbackHistory_CRUD Error");
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "create T_ArrayExpFeedbackHistory_CRUD Error: getExpID");
 			}
 			feedbackHistory.setExp_ID(str1);
 
 			str1 = aGlass.getExpRcpID();
 			if (str1 == null) {
-				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "create T_ArrayExpFeedbackHistory_CRUD Error");
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "create T_ArrayExpFeedbackHistory_CRUD Error: getExpRcpID");
 			}
 			feedbackHistory.setExp_Rcp_ID(str1);
 
 			str1 = aGlass.getExpRcpName();
 			if (str1 == null) {
-				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "create T_ArrayExpFeedbackHistory_CRUD Error");
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "create T_ArrayExpFeedbackHistory_CRUD Error: getExpRcpName");
 			}
 			feedbackHistory.setExp_Rcp_Name(str1);
 						
