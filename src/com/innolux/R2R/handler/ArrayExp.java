@@ -38,36 +38,8 @@ public class ArrayExp implements IFileData{
 	private static Logger logger = Logger.getLogger(ArrayExp.class);
 	
 	public static void main(String [] argv) {
-		//System.out.println(MeasureFileReader.class);	
-		// ArrayExp a = new ArrayExp("C:\\R2RNikonTest\\workspace\\", "C:\\R2RNikonTest\\ngFile\\");
-		
-		MES_lwExpR2rSetting aMES_lwExpR2rSetting = new MES_lwExpR2rSetting();
-		aMES_lwExpR2rSetting.setEqpId("r2rTest");
-		aMES_lwExpR2rSetting.setHoldFlag("T");
-		aMES_lwExpR2rSetting.setProdId("r2rTest");
-		aMES_lwExpR2rSetting.setR2rFeedbackTime(new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date()));
-		aMES_lwExpR2rSetting.setRecipeId("r2rTest");
-		List<MES_lwExpR2rSetting> mesLwExpR2rSettingList = MES_lwExpR2rSetting_CRUD.read(aMES_lwExpR2rSetting);
-		boolean state;
-		if (mesLwExpR2rSettingList == null) {
-			// create
-			state = MES_lwExpR2rSetting_CRUD.create(aMES_lwExpR2rSetting);
-			if (state) {
-				System.out.println("create success");
-			}else {
-				System.out.println("create fail");
-			}
-				
-		}else {
-			// update
-			state = MES_lwExpR2rSetting_CRUD.update(aMES_lwExpR2rSetting);
-			if (state) {
-				System.out.println("update success");
-			}else {
-				System.out.println("update fail");
-			}
-		}
-		
+		// System.out.println(MeasureFileReader.class);	
+		ArrayExp a = new ArrayExp("C:\\R2RNikonTest\\workspace\\", "C:\\R2RNikonTest\\ngFile\\");
 	}
 	
 	public ArrayExp(String csvUpperFilePath, String ngFilePath) {
@@ -181,9 +153,9 @@ public class ArrayExp implements IFileData{
 			}else if(averageGlass.getExpSupplier().toUpperCase().equals("CANON")){
 				int intState = createCanonFeedbackFile(averageGlass);
 				if (intState == -1) {
-					Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Error: creatNikonFeedbackFile fail");
+					Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Error: creatCanonFeedbackFile fail");
 					return;
-				}else Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "creatNikonFeedbackFile success");
+				}else Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "creatCanonFeedbackFile success");
 			}
 			
 			// save feedback history to DB
@@ -191,6 +163,7 @@ public class ArrayExp implements IFileData{
 			state = T_ArrayExpFeedbackHistory_CRUD.create(averageGlass, "Automation", "R2R", feedbackTime);
 			if (!state) {
 				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Error: cannot create T_ArrayExpFeedbackHistory_CRUD");
+				return;
 			}
 			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "create T_ArrayExpFeedbackHistory_CRUD success");
 			
@@ -203,6 +176,7 @@ public class ArrayExp implements IFileData{
 															averageGlass.getAdcOrFdc());
 			if (!state) {
 				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Error: cannot delete T_ArrayExpContinueGlassSet_CRUD");
+				return;
 			}
 			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Success: delete T_ArrayExpContinueGlassSet_CRUD success");
 			
@@ -231,19 +205,14 @@ public class ArrayExp implements IFileData{
 		}
 	}
 	private int createCanonFeedbackFile(ExpMeasGlass emGlass) {
-		String timeStamp = new SimpleDateFormat("yyyyMMddHHmmss").format(Calendar.getInstance().getTime());
-		String feedbackFileName = emGlass.getGlassID() + "_" + emGlass.getMeasStepID() + "_" + 
-								  emGlass.getExpID() + "_" + emGlass.getMeasEqId() + "_" +
-								  emGlass.getMeasRcpID() + "_" + timeStamp;
 		try {
-			// DEBUG use
-			//PrintWriter writer = new PrintWriter("C:\\R2RNikonTest\\" + feedbackFileName + ".csv", "UTF-8");
-			PrintWriter writer = new PrintWriter("C:\\R2R-FTP\\" + emGlass.getExpID() + "\\" + feedbackFileName + ".csv", "UTF-8");
-			writer.println( "Recipe No.," + emGlass.getExpRcpID() );
-			writer.println( "Glass ID," + emGlass.getGlassID() );
-			writer.println( "Insp. Date," + timeStamp );
+			String outputString = "";
+			outputString += "Recipe No.," + emGlass.getExpRcpID() + "\n";
+			outputString += "Glass ID," + emGlass.getGlassID() + "\n";
+			String timeStamp = new SimpleDateFormat("yyyyMMddHHmmss").format(Calendar.getInstance().getTime());
+			outputString += "Insp. Date," + timeStamp + "\n";
 			int pointNum = emGlass.getMeasPointList().size();
-			writer.println("Measure Point," + pointNum);
+			outputString += "Measure Point," + pointNum + "\n";
 			
 			List<T_CanonExpSiteNo2ScanNo> siteNo2ScanNoList = T_CanonExpSiteNo2ScanNo_CRUD.read(emGlass.getProductName(), emGlass.getExpStepID());																		 			
 			if (siteNo2ScanNoList == null) {
@@ -271,9 +240,22 @@ public class ArrayExp implements IFileData{
 					return -1; 
 				}
 				String CanonScanNo = String.valueOf(scanNo);
-				writer.println( (pInd + 1) + "," + CanonX + "," + CanonY + "," + CanonOL01 + "," + CanonOL02 + "," + CanonScanNo);
+				outputString += (pInd + 1) + "," + CanonX + "," + CanonY + "," + CanonOL01 + "," + CanonOL02 + "," + CanonScanNo + "\n";
 			}
+			
+			
+			String feedbackFileName = emGlass.getGlassID() + "_" + emGlass.getMeasStepID() + "_" + 
+									  emGlass.getExpID() + "_" + emGlass.getMeasEqId() + "_" +
+									  emGlass.getMeasRcpID() + "_" + timeStamp;
+			// DEBUG use
+			//PrintWriter writer = new PrintWriter("C:\\R2RNikonTest\\" + feedbackFileName + ".csv", "UTF-8");
+			PrintWriter writer = new PrintWriter("C:\\R2R-FTP\\" + emGlass.getExpID() + "\\" + feedbackFileName + ".csv", "UTF-8");
+			writer.print(outputString);
 			writer.close();
+			
+			// save feedback file to db
+			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "Canon Feedback File:");
+			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, outputString);
 			return 1;
 
 		}catch(Exception e) {
@@ -282,24 +264,23 @@ public class ArrayExp implements IFileData{
 		}
 	}
 	private int creatNikonFeedbackFile(ExpMeasGlass averageGlass) {
-		String feedbackFileName = averageGlass.getExpID() + "@" + averageGlass.getExpRcpName() + "@@@" + "01" + ".mv5";
 		try {
-			PrintWriter writer = new PrintWriter("Z:\\" + feedbackFileName, "UTF-8");
-			writer.println("MV5Ver,0");
+			String outputString = "";
+			outputString += "MV5Ver,0" + "\n";
 			String timeStamp = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(Calendar.getInstance().getTime());
-			writer.println("MV5Date," + timeStamp);
-			writer.println("MID," + averageGlass.getExpID());
-			writer.println("Recipe," + String.format("%04d", Integer.parseInt(averageGlass.getExpRcpID())) + "," + averageGlass.getExpRcpName());
-			writer.println("Mask,,");
-			writer.println("OffsetID,");
-			writer.println("ProcessInfo,,");
-			writer.println("MeasSystem," + averageGlass.getMeasEqId());
-			writer.println("MeasDate," + timeStamp);
-			writer.println("PlateSize,1850.00,1500.00");
-			writer.println("PlateDir,0");
-			writer.println("PlateResult,OK");
+			outputString += "MV5Date," + timeStamp + "\n";
+			outputString += "MID," + averageGlass.getExpID() + "\n";
+			outputString += "Recipe," + String.format("%04d", Integer.parseInt(averageGlass.getExpRcpID())) + "," + averageGlass.getExpRcpName() + "\n";
+			outputString += "Mask,," + "\n";
+			outputString += "OffsetID," + "\n";
+			outputString += "ProcessInfo,," + "\n";
+			outputString += "MeasSystem," + averageGlass.getMeasEqId() + "\n";
+			outputString += "MeasDate," + timeStamp + "\n";
+			outputString += "PlateSize,1850.00,1500.00" + "\n";
+			outputString += "PlateDir,0" + "\n";
+			outputString += "PlateResult,OK" + "\n";
 			int pointNum = averageGlass.getMeasPointList().size();
-			writer.println("MeasPoint," + pointNum);
+			outputString += "MeasPoint," + pointNum + "\n";
 			for(int pInd = 1; pInd <= pointNum; pInd++) {
 				// Nikon X = - MCD Y
 				// Nikon Y = MCD X
@@ -308,10 +289,46 @@ public class ArrayExp implements IFileData{
 				String NikonY = String.format("%.2f", point.getxAxis());
 				String NikonOL01 = String.format("%.3f", -point.getyValue());
 				String NikonOL02 = String.format("%.3f", point.getxValue());
-				writer.println("MeasResult," + pInd + ",1," + NikonX + "," + NikonY + ",XY," + NikonOL01 + "," + NikonOL02 + ",XY");
+				outputString += "MeasResult," + pInd + ",1," + NikonX + "," + NikonY + ",XY," + NikonOL01 + "," + NikonOL02 + ",XY" + "\n";
 			}
-			writer.println("<EOF>");
+			outputString += "<EOF>";
+			
+			String feedbackFileName = averageGlass.getExpID() + "@" + averageGlass.getExpRcpName() + "@@@" + "01" + ".mv5";
+			PrintWriter writer = new PrintWriter("Z:\\" + feedbackFileName, "UTF-8");
+			writer.print(outputString);
 			writer.close();
+			
+			// save feedback file to db
+			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "Nikon Feedback File:");
+			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, outputString);
+			
+//			writer.println("MV5Ver,0");
+//			String timeStamp = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(Calendar.getInstance().getTime());
+//			writer.println("MV5Date," + timeStamp);
+//			writer.println("MID," + averageGlass.getExpID());
+//			writer.println("Recipe," + String.format("%04d", Integer.parseInt(averageGlass.getExpRcpID())) + "," + averageGlass.getExpRcpName());
+//			writer.println("Mask,,");
+//			writer.println("OffsetID,");
+//			writer.println("ProcessInfo,,");
+//			writer.println("MeasSystem," + averageGlass.getMeasEqId());
+//			writer.println("MeasDate," + timeStamp);
+//			writer.println("PlateSize,1850.00,1500.00");
+//			writer.println("PlateDir,0");
+//			writer.println("PlateResult,OK");
+//			int pointNum = averageGlass.getMeasPointList().size();
+//			writer.println("MeasPoint," + pointNum);
+//			for(int pInd = 1; pInd <= pointNum; pInd++) {
+//				// Nikon X = - MCD Y
+//				// Nikon Y = MCD X
+//				Vector2D point = averageGlass.getMeasPointList().get(pInd - 1);
+//				String NikonX = String.format("%.2f", -point.getyAxis());
+//				String NikonY = String.format("%.2f", point.getxAxis());
+//				String NikonOL01 = String.format("%.3f", -point.getyValue());
+//				String NikonOL02 = String.format("%.3f", point.getxValue());
+//				writer.println("MeasResult," + pInd + ",1," + NikonX + "," + NikonY + ",XY," + NikonOL01 + "," + NikonOL02 + ",XY");
+//			}
+//			writer.println("<EOF>");
+//			writer.close();
 			return 1;
 
 		}catch(Exception e) {

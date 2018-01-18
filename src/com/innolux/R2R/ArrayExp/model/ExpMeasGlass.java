@@ -305,7 +305,7 @@ public class ExpMeasGlass {
 					return null;
 				}
 			}
-			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "csv2ExpMeasGlass: read data in T_EqGroup2EqID successfully");
+			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "csv2ExpMeasGlass: read T_EqGroup2EqID: eqGroup = " + eqGroup2EqID.getEqGroup());
 			aGlass.setExpSupplier(eqGroup2EqID.getEqGroup()); // Nikon or Canon
 			
 			str1 = csv.FetchValue("PDS_GLASS_DATA", "PreRecipe_ID_1");
