@@ -1,10 +1,11 @@
 package com.innolux.R2R.common.base;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
-
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -14,7 +15,7 @@ import com.innolux.R2R.model.MeasureFileData_CRUD;
 
 public class MeasureFileDataBase {
 	private Logger logger = Logger.getLogger(this.getClass());
-	private Hashtable<String, Hashtable<Long,String>> data = new Hashtable<String, Hashtable<Long,String>>();
+	private Map<String, Map<Long,String>> data = new HashMap<String, Map<Long,String>>();
 	private String currentHeader = "";
 	private String FileName = "";
 	
@@ -31,7 +32,7 @@ public class MeasureFileDataBase {
 		try {
 			for(String eachheader: data.keySet()){
 
-				Hashtable<Long, String> sectionData = data.get(eachheader);
+				Map<Long, String> sectionData = data.get(eachheader);
 				
 				for(long index: sectionData.keySet()){
 					String eachRow = sectionData.get(index);
@@ -58,10 +59,10 @@ public class MeasureFileDataBase {
 	public void Store(String headerName, long index, String raw) {
 		try {
 			if (data.containsKey(headerName)) {
-				Hashtable<Long,String> tmp = data.get(headerName);
+				Map<Long,String> tmp = data.get(headerName);
 				tmp.put(index,raw);
 			} else {
-				Hashtable<Long,String> tmp = new Hashtable<Long,String>();
+				Map<Long,String> tmp = new HashMap<Long,String>();
 				tmp.put(index,raw);
 				data.put(currentHeader, tmp);
 			}
@@ -79,10 +80,10 @@ public class MeasureFileDataBase {
 			} else {
 				if (!currentHeader.equals("")) {
 					if (data.containsKey(currentHeader)) {
-						Hashtable<Long,String> tmp = data.get(currentHeader);
+						Map<Long,String> tmp = data.get(currentHeader);
 						tmp.put((long)tmp.size(),raw);
 					} else {
-						Hashtable<Long,String> tmp = new Hashtable<Long,String>();
+						Map<Long,String> tmp = new HashMap<Long,String>();
 						tmp.put((long)tmp.size(),raw);
 						data.put(currentHeader, tmp);
 					}
@@ -98,7 +99,7 @@ public class MeasureFileDataBase {
 
 		try {
 			if (data.containsKey(headerName)) {
-				Hashtable<Long,String> valueData = data.get(headerName);				
+				Map<Long,String> valueData = data.get(headerName);				
 				if (valueData.size() != 0) {
 					
 					for (int i = 0; i < valueData.size(); i++) {
@@ -108,7 +109,7 @@ public class MeasureFileDataBase {
 						String[] rowAry2 = rowAry[0].split(":");
 						if (rowAry2.length >= 2) {
 							name = rowAry2[0];
-							if (name.equals(Name)) {
+							if (name.trim().equals(Name)) {
 								result = rowAry2[1];
 								break;
 							}
@@ -127,13 +128,13 @@ public class MeasureFileDataBase {
 		String result = "";
 		try { 
 			if (data.containsKey(headerName)) {
-				Hashtable<Long,String> valueData = data.get(headerName);
+				Map<Long,String> valueData = data.get(headerName);
 				if (valueData.size() >= 2) {
 					String[] header = valueData.get((long)0).split(",");
 					String[] value = valueData.get((long)1).split(",");
 					//if (header.length == value.length) {
 						for (int i = 0; i < header.length; i++) {
-							if (header[i].equals(Name)) {
+							if (header[i].trim().equals(Name)) {
 								result = value[i];
 								break;
 							}
@@ -154,13 +155,13 @@ public class MeasureFileDataBase {
 		int headerIdx = -1;
 		try {
 			if (data.containsKey(headerName)) {
-				Hashtable<Long,String> valueData = data.get(headerName);
+				Map<Long,String> valueData = data.get(headerName);
 				if (valueData.size() >= 2) {
 					for (int i = 0; i < valueData.size(); i++) {
 						if (i == 0) {
 							String[] header = valueData.get((long)i).split(",");
 							for (int x = 0; x < header.length; x++) {
-								if (header[x].equals(Name)) {
+								if (header[x].trim().equals(Name)) {
 									headerIdx = x;
 									break;
 								}

@@ -15,8 +15,7 @@ public class AP_Status {
 	private String PreRecipe;
 	@Column("Last_Time")
 	private long Last_Time;
-	@Column("Current_Count")
-	private int Current_Count;
+	
 	
 	public String getPrimaryKey() {
 		return PrimaryKey;
@@ -50,13 +49,7 @@ public class AP_Status {
 		Last_Time = last_Time;
 	}
 
-	public int getCurrent_Count() {
-		return Current_Count;
-	}
 
-	public void setCurrent_Count(int current_Count) {
-		Current_Count = current_Count;
-	}
 
 	@Override
 	public String toString() {
