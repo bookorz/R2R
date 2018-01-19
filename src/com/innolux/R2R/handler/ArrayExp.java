@@ -130,6 +130,7 @@ public class ArrayExp implements IFileData{
 			
 			// createFeedbackFile
 			if(averageGlass.getExpSupplier().toUpperCase().equals("NIKON")){
+				averageGlass.setOlOrDol("DOL");  // 20180119 new Logic: Nikon only feedback DOL
 				int intState = creatNikonFeedbackFile(averageGlass);
 				if (intState == -1) {
 					Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Error: creatNikonFeedbackFile fail");
@@ -139,12 +140,11 @@ public class ArrayExp implements IFileData{
 				String workingDirectory = System.getProperty("user.dir");
 				cmdStr += workingDirectory + "\\DPS2.exe ";
 				cmdStr += "\"" + averageGlass.getExpID() + "\" \"" + averageGlass.getExpRcpName() + "\"";
-//				if (averageGlass.getOlOrDol().equals("OL")) // 20180119 new Logic: Nikon only feedback DOL
-//					cmdStr += " \"0\"";
-//				if (averageGlass.getOlOrDol().equals("DOL"))
-//					cmdStr += " \"2\"";
-				cmdStr += " \"2\"";
-				
+				if (averageGlass.getOlOrDol().equals("OL"))
+					cmdStr += " \"0\"";
+				if (averageGlass.getOlOrDol().equals("DOL"))
+					cmdStr += " \"2\"";
+			
 				Process process = Runtime.getRuntime().exec(cmdStr);
 				process.waitFor();
 				int exitVal = process.exitValue();
