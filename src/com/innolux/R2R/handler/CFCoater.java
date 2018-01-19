@@ -54,7 +54,7 @@ public class CFCoater implements IFileData {
 
 	@Override
 	public void onFileData(MeasureFileDataBase data) {
-
+		logger.info("File name:"+data.getFileName());
 		Glass_Sammury_Data summary = new Glass_Sammury_Data();
 
 		try {
