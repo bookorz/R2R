@@ -24,6 +24,8 @@ import com.innolux.R2R.ArrayExp.model.T_AutoFeedbackSetting;
 import com.innolux.R2R.ArrayExp.model.T_AutoFeedbackSetting_CRUD;
 import com.innolux.R2R.ArrayExp.model.T_CanonExpSiteNo2ScanNo;
 import com.innolux.R2R.ArrayExp.model.T_CanonExpSiteNo2ScanNo_CRUD;
+import com.innolux.R2R.ArrayExp.model.T_EqGroup2EqID;
+import com.innolux.R2R.ArrayExp.model.T_EqGroup2EqID_CRUD;
 import com.innolux.R2R.ArrayExp.model.T_LastExpTime_CRUD;
 import com.innolux.R2R.ArrayExp.model.Utility;
 import com.innolux.R2R.ArrayExp.model.Vector2D;
@@ -95,6 +97,18 @@ public class ArrayExp implements IFileData{
 			}
 			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "glass(" + emGlass.getGlassID() + ") data is vaild");
 			
+			// 20180119 new Logic: Nikon only feedback DOL
+			T_EqGroup2EqID eqGroup2EqID;
+			eqGroup2EqID = T_EqGroup2EqID_CRUD.read(emGlass.getExpID());
+			if (eqGroup2EqID == null) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Error: cannot read data in T_EqGroup2EqID");
+				return ;
+			}
+			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "csv2ExpMeasGlass: read T_EqGroup2EqID: eqGroup = " + eqGroup2EqID.getEqGroup());
+			if(eqGroup2EqID.getEqGroup().toUpperCase().equals("NIKON")) {
+				emGlass.setOlOrDol("DOL");  
+			}
+
 			// add glass to continue Glass set
 			boolean state = T_ArrayExpContinueGlassSet_CRUD.create(emGlass);
 			if (state == false) {
@@ -130,7 +144,6 @@ public class ArrayExp implements IFileData{
 			
 			// createFeedbackFile
 			if(averageGlass.getExpSupplier().toUpperCase().equals("NIKON")){
-				averageGlass.setOlOrDol("DOL");  // 20180119 new Logic: Nikon only feedback DOL
 				int intState = creatNikonFeedbackFile(averageGlass);
 				if (intState == -1) {
 					Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Error: creatNikonFeedbackFile fail");
