@@ -369,7 +369,7 @@ public class ExpMeasGlass {
 				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "ExpMeasGlass.getVectPointInGlass Error minOL = null");
 				return null;
 			}
-			Utility.saveToLogHistoryDB(GlobleVar.LogDebugType, "csv2ExpMeasGlass: get minOL info successfully");
+			Utility.saveToLogHistoryDB(GlobleVar.LogDebugType, "csv2ExpMeasGlass: get minOL(" + minOL.getxValue() + "," + minOL.getyValue() + ")");
 			
 			Vector2D maxOL = new Vector2D();
 			maxOL =  ExpMeasGlass.getVectPointInGlass(csv, "Max", "OL");
@@ -377,20 +377,20 @@ public class ExpMeasGlass {
 				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "ExpMeasGlass.getVectPointInGlass Error maxOL = null");
 				return null;
 			}
-			Utility.saveToLogHistoryDB(GlobleVar.LogDebugType, "csv2ExpMeasGlass: get maxOL info successfully");
+			Utility.saveToLogHistoryDB(GlobleVar.LogDebugType, "csv2ExpMeasGlass: get maxOL(" + minOL.getxValue() + "," + minOL.getyValue() + ")");
 			
 			Vector2D minDOL = new Vector2D();
 			minDOL =  ExpMeasGlass.getVectPointInGlass(csv, "Min", "DOL");
 			if (minDOL == null) {
 				Utility.saveToLogHistoryDB(GlobleVar.LogDebugType, "ExpMeasGlass.getVectPointInGlass fail: minDOL = null");
 			}
-			else Utility.saveToLogHistoryDB(GlobleVar.LogDebugType, "csv2ExpMeasGlass: get minDOL info successfully");
+			else Utility.saveToLogHistoryDB(GlobleVar.LogDebugType, "csv2ExpMeasGlass: get minDOL(" + minOL.getxValue() + "," + minOL.getyValue() + ")");
 			
 			Vector2D maxDOL = new Vector2D();
 			maxDOL =  ExpMeasGlass.getVectPointInGlass(csv, "Max", "DOL");
 			if (maxDOL == null)
 				Utility.saveToLogHistoryDB(GlobleVar.LogDebugType, "ExpMeasGlass.getVectPointInGlass fail: maxDOL = null");
-			else Utility.saveToLogHistoryDB(GlobleVar.LogDebugType, "csv2ExpMeasGlass: get maxDOL info successfully");
+			else Utility.saveToLogHistoryDB(GlobleVar.LogDebugType, "csv2ExpMeasGlass: get maxDOL(" + minOL.getxValue() + "," + minOL.getyValue() + ")");
 			
 			aGlass.setAdcOrFdc("NULL");
 			if(aGlass.getExpSupplier().toUpperCase().equals("CANON")) {
@@ -580,6 +580,8 @@ public class ExpMeasGlass {
 		// check the exposure time length between this glass and previous glass
 		
 		// get pevsGlassExposureTime
+		long pevsGlassExposureTime = this.getExposureTime();
+		
 		T_LastExpTime lastExpTime;
 		if (Utility.DEBUG) {
 			lastExpTime = new T_LastExpTime();
@@ -588,26 +590,22 @@ public class ExpMeasGlass {
 			lastExpTime = T_LastExpTime_CRUD.read(this.expID, this.expRcpID);
 			if (lastExpTime == null) {
 				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "checkIsDataVaild: cannot get T_LastExpTime");
+				// create
+				T_LastExpTime aLastExpTime = new T_LastExpTime();
+				aLastExpTime.setExpId(this.getExpID());
+				aLastExpTime.setExpTime(this.getExposureTime());
+				aLastExpTime.setRcpId(this.getExpRcpID());
+				T_LastExpTime_CRUD.create(aLastExpTime);
+			}else{
+				pevsGlassExposureTime = lastExpTime.getExpTime();
+				if (this.getExposureTime() > pevsGlassExposureTime) {
+					// update
+					lastExpTime.setExpTime(this.getExposureTime());
+					T_LastExpTime_CRUD.update(lastExpTime);
+				}
 			}
 		}
-		
-		long pevsGlassExposureTime = -1;
-		if (lastExpTime != null) {
-			pevsGlassExposureTime = lastExpTime.getExpTime();
-			if (this.getExposureTime() > pevsGlassExposureTime) {
-				// update
-				lastExpTime.setExpTime(this.getExposureTime());
-				T_LastExpTime_CRUD.update(lastExpTime);
-			}			
-		}else if (lastExpTime == null) {
-			// create
-			T_LastExpTime aLastExpTime = new T_LastExpTime();
-			aLastExpTime.setExpId(this.getExpID());
-			aLastExpTime.setExpTime(this.getExposureTime());
-			aLastExpTime.setRcpId(this.getExpRcpID());
-			T_LastExpTime_CRUD.create(aLastExpTime);
-		}
-		
+
 		T_AutoFeedbackSetting autoFeedbackSetting; 
 		if(Utility.DEBUG) {
 			autoFeedbackSetting = new T_AutoFeedbackSetting();
@@ -625,14 +623,19 @@ public class ExpMeasGlass {
 			}
 		}
 		long expireTime = autoFeedbackSetting.getExpiretime(); 
-		if (expireTime != 0) {
+		if (expireTime > 0) {
 			if (this.getExposureTime() - pevsGlassExposureTime > expireTime){
-				Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "checkIsDataVaild: the time length between the exposure time of this glass and the previous's > setting expireTime");
+				Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "checkIsDataVaild: (exp time of this glass[" + this.getExposureTime() + 
+																		"] - the previous's[" + pevsGlassExposureTime + 
+																		"]) > setting expireTime[" + expireTime + "]");
 				cleanTargetGlassSet(this);
 				return false;
 			}
+			// case "this.getExposureTime() - pevsGlassExposureTime > expireTime" is good, continue
+		}else {
+			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "checkIsDataVaild Error: T_autoFeedbackSetting expireTime < 0");
 		}
-	
+		
 		// check the time length between the track in time of this glass and the last feedback time of this (EXP, recipe)
 		long thisGlassTrackInTime = getMesTrackInTime(this.getGlassID(), this.getExpStepID(), this.getExpID());
 		if (thisGlassTrackInTime == -1) {

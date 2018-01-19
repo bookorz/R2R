@@ -1,6 +1,7 @@
 package com.innolux.R2R.handler;
 
 import java.io.PrintWriter;
+import java.lang.Thread.State;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -138,10 +139,12 @@ public class ArrayExp implements IFileData{
 				String workingDirectory = System.getProperty("user.dir");
 				cmdStr += workingDirectory + "\\DPS2.exe ";
 				cmdStr += "\"" + averageGlass.getExpID() + "\" \"" + averageGlass.getExpRcpName() + "\"";
-				if (averageGlass.getOlOrDol().equals("OL"))
-					cmdStr += " \"0\"";
-				if (averageGlass.getOlOrDol().equals("DOL"))
-					cmdStr += " \"2\"";
+//				if (averageGlass.getOlOrDol().equals("OL")) // 20180119 new Logic: Nikon only feedback DOL
+//					cmdStr += " \"0\"";
+//				if (averageGlass.getOlOrDol().equals("DOL"))
+//					cmdStr += " \"2\"";
+				cmdStr += " \"2\"";
+				
 				Process process = Runtime.getRuntime().exec(cmdStr);
 				process.waitFor();
 				int exitVal = process.exitValue();
@@ -178,23 +181,22 @@ public class ArrayExp implements IFileData{
 				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Error: cannot delete T_ArrayExpContinueGlassSet_CRUD");
 				return;
 			}
-			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Success: delete T_ArrayExpContinueGlassSet_CRUD success");
+			Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Success: delete T_ArrayExpContinueGlassSet success");
 			
-			if(false) { // wait for MES online
-				// save table to MES
-				MES_lwExpR2rSetting aMES_lwExpR2rSetting = new MES_lwExpR2rSetting();
-				aMES_lwExpR2rSetting.setEqpId(averageGlass.getExpID());
-				aMES_lwExpR2rSetting.setHoldFlag(autoFbkSeting.getHoldFlag());
-				aMES_lwExpR2rSetting.setProdId(averageGlass.getProductName());
-				aMES_lwExpR2rSetting.setR2rFeedbackTime(new SimpleDateFormat("yyyyMMddHHmmssSSS").format(feedbackTime));
-				aMES_lwExpR2rSetting.setRecipeId(averageGlass.getExpRcpID()); 
-				state = MES_lwExpR2rSetting_CRUD.create(aMES_lwExpR2rSetting);// don't deal with old data, just add new data
-				if (state) {
-					Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "create MES_lwExpR2rSetting_CRUD success");
-				}else {
-					Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Error: create MES_lwExpR2rSetting_CRUD error");
-					return;
-				}
+		
+			// save table to MES
+			MES_lwExpR2rSetting aMES_lwExpR2rSetting = new MES_lwExpR2rSetting();
+			aMES_lwExpR2rSetting.setEqpId(averageGlass.getExpID());
+			aMES_lwExpR2rSetting.setHoldFlag(autoFbkSeting.getHoldFlag());
+			aMES_lwExpR2rSetting.setProdId(averageGlass.getProductName());
+			aMES_lwExpR2rSetting.setR2rFeedbackTime(new SimpleDateFormat("yyyyMMddHHmmssSSS").format(feedbackTime));
+			aMES_lwExpR2rSetting.setRecipeId(averageGlass.getExpRcpID()); 
+			state = MES_lwExpR2rSetting_CRUD.create(aMES_lwExpR2rSetting);// don't deal with old data, just add new data
+			if (state) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "create MES_lwExpR2rSetting_CRUD success");
+			}else {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "Error: create MES_lwExpR2rSetting_CRUD error");
+				return;
 			}
 			
 		
@@ -255,7 +257,12 @@ public class ArrayExp implements IFileData{
 			
 			// save feedback file to db
 			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "Canon Feedback File:");
-			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, outputString);
+			if (outputString.length() > Utility.DB_STRING_MAX_SIZE) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "feedback file length(" + outputString.length() + ") > DB_STRING_MAX_SIZE");
+			}else {
+				Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, outputString);
+			}
+			
 			return 1;
 
 		}catch(Exception e) {
@@ -302,33 +309,12 @@ public class ArrayExp implements IFileData{
 			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, "Nikon Feedback File:");
 			Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, outputString);
 			
-//			writer.println("MV5Ver,0");
-//			String timeStamp = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(Calendar.getInstance().getTime());
-//			writer.println("MV5Date," + timeStamp);
-//			writer.println("MID," + averageGlass.getExpID());
-//			writer.println("Recipe," + String.format("%04d", Integer.parseInt(averageGlass.getExpRcpID())) + "," + averageGlass.getExpRcpName());
-//			writer.println("Mask,,");
-//			writer.println("OffsetID,");
-//			writer.println("ProcessInfo,,");
-//			writer.println("MeasSystem," + averageGlass.getMeasEqId());
-//			writer.println("MeasDate," + timeStamp);
-//			writer.println("PlateSize,1850.00,1500.00");
-//			writer.println("PlateDir,0");
-//			writer.println("PlateResult,OK");
-//			int pointNum = averageGlass.getMeasPointList().size();
-//			writer.println("MeasPoint," + pointNum);
-//			for(int pInd = 1; pInd <= pointNum; pInd++) {
-//				// Nikon X = - MCD Y
-//				// Nikon Y = MCD X
-//				Vector2D point = averageGlass.getMeasPointList().get(pInd - 1);
-//				String NikonX = String.format("%.2f", -point.getyAxis());
-//				String NikonY = String.format("%.2f", point.getxAxis());
-//				String NikonOL01 = String.format("%.3f", -point.getyValue());
-//				String NikonOL02 = String.format("%.3f", point.getxValue());
-//				writer.println("MeasResult," + pInd + ",1," + NikonX + "," + NikonY + ",XY," + NikonOL01 + "," + NikonOL02 + ",XY");
-//			}
-//			writer.println("<EOF>");
-//			writer.close();
+			if (outputString.length() > Utility.DB_STRING_MAX_SIZE) {
+				Utility.saveToLogHistoryDB(GlobleVar.LogErrorType, "feedback file length(" + outputString.length() + ") > DB_STRING_MAX_SIZE");
+			}else {
+				Utility.saveToLogHistoryDB(GlobleVar.LogInfoType, outputString);
+			}
+
 			return 1;
 
 		}catch(Exception e) {
